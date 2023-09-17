@@ -78,6 +78,7 @@ ylabel('Data y');
 grid on;
 hold on;
 
+
 Data_t = unique(t);
 Data_p = unique(p);
 Data_l = unique(l);
@@ -92,6 +93,7 @@ Throughput_avg = [];
 delay_avg =[];
 traceCount = [];
 reachableDuration = [];
+
 
 for i = 1:length(Data_t)
     subplot(6, 1, 1);
@@ -229,6 +231,9 @@ for i = 1:length(Data_t)
             end
             traceCount(k) = k;
         end
+
+        
+        
     end
     legend('mobil','taxi', 'RSU', 'Location', 'northwest');
 
@@ -270,7 +275,9 @@ for i = 1:length(Data_t)
     plot(rsu_x, rsu_y, 'o', 'MarkerFaceColor', 'cyan');
     text(rsu_x, rsu_y, ' RSU ', 'HorizontalAlignment', 'left')
     hold on;
-
+    gscatter(x, y, idx);
+    xlabel('Data x');
+    ylabel('Data y')
     % Menghubungkan dua titik koordinat dengan garis berdasarkan nilai unik pada Data_l
     for j = 1:length(Data_l)
         idx_l = idx & strcmp(l, Data_l(j));
@@ -278,6 +285,10 @@ for i = 1:length(Data_t)
         y_l = y(idx_l);
         id_l = data.id(idx_l); % Kolom id dari data
         type_l = data.type(idx_l); % Kolom type dari data
+        idx = t == Data_t(i);
+
+        
+
         
         for k = 1:length(x_l)-1
             distance2 = sqrt((x_l(k+1) - x_l(k))^2 + (y_l(k+1) - y_l(k))^2);
@@ -326,17 +337,22 @@ elseif Yi <= 300
 
             % Menggambar node dengan warna yang sesuai
             plot(Xi, Yi, 'o', 'MarkerFaceColor', node_color);
-            text(Xi, Yi, [' ' id_i ', ' type_i], 'Color', 'black', 'FontSize', 8);
+            text(Xi, Yi, [' ' id_i '' type_i], 'Color', 'black', 'FontSize', 8);
 
         
             %text(Xi, Yi, '  re ', 'Color', node_color);
         end  
     end
         
-    
+
+
+ 
+
+
+
 
     %legend('mobil','taxi', 'RSU', 'Location', 'northwest');
-    legend('mobil','RSU', 'Location', 'northwest');
+    legend('mobil','RSU', 'Cluster 1', 'Cluster 2', 'Cluster 3', 'Cluster 4', 'Cluster 5', 'Cluster 6', 'Cluster 7', 'Cluster 8', 'Cluster 9', 'Cluster 10','Location', 'northwest');
    
     %pause(0.45);
     pause(1.00);
@@ -347,9 +363,50 @@ elseif Yi <= 300
     %outputFile = 'Hsimulasitracecount.xlsx';
 
     %xlswrite(outputFile, outputData, sheet);
+    
+    
 
+    % Extract the x and y coordinates of vehicle nodes
+    % vehicle_nodes = [x(idx_mobil), y(idx_mobil)];
+
+    
+    % Misalnya, Anda memiliki data x dan y dalam matriks "data"
+    x = data.x;
+    y = data.y;
+    
+    % Gabungkan data x dan y ke dalam matriks X
+    X = [x, y];
+    
+    % Jumlah cluster yang diinginkan
+    numClusters = 10; % Ganti dengan jumlah cluster yang Anda inginkan
+    
+    % Terapkan K-Means clustering
+    [idx, C] = kmeans(X, numClusters);
+
+    % Tambahkan kolom 'Cluster' ke dalam data
+    data.Cluster = idx;
+    
+    % Visualisasikan hasil clustering
+    %figure;
+    %gscatter(x, y, idx);
+    %title('Clustering Berdasarkan Data x dan y');
+    %xlabel('Data x');
+    %ylabel('Data y');
+    %legend('Cluster 1', 'Cluster 2', 'Cluster 3', 'Cluster 4', 'Cluster 5', 'Cluster 6', 'Cluster 7', 'Cluster 8', 'Cluster 9', 'Cluster 10'); % Sesuaikan dengan jumlah cluster yang Anda pilih
+    
+    % Plot pusat cluster (centroid)
+    %hold on;
+    %plot(C(:, 1), C(:, 2), 'kx', 'MarkerSize', 10, 'LineWidth', 2);
+    %legend('Cluster 1', 'Cluster 2', 'Cluster 3', 'Centroid');
+    %hold off;
+    
+
+
+    % Membuat objek V2V dan V2I
+    v2vConnection = V2VConnection(data);
+    v2iConnection = V2IConnection(data);
 
     % Write the updated table back to Excel
-    writetable(data, filename, 'Sheet', sheet, 'WriteVariableNames', true);
+    %writetable(data, filename, 'Sheet', sheet, 'WriteVariableNames', true);
 end
 hold off;
