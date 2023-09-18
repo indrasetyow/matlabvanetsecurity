@@ -393,7 +393,7 @@ elseif Yi <= 300
     %title('Clustering Berdasarkan Data x dan y');
     %xlabel('Data x');
     %ylabel('Data y');
-    %legend('Cluster 1', 'Cluster 2', 'Cluster 3', 'Cluster 4', 'Cluster 5', 'Cluster 6', 'Cluster 7', 'Cluster 8', 'Cluster 9', 'Cluster 10'); % Sesuaikan dengan jumlah cluster yang Anda pilih
+    %legend('Cluster 1', 'Cluster 2', 'Cluster 3', 'Cluster 4', 'Cluster 5', 'Cluster 6', 'Cluster 7', 'Cluster 8', 'Cluster 9', 'Cluster 10'); % Sesuaikan dengan jumlah cluster yang Dipilih
     
     % Plot pusat cluster (centroid)
     %hold on;
