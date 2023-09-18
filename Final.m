@@ -378,7 +378,8 @@ elseif Yi <= 300
     X = [x, y];
     
     % Jumlah cluster yang diinginkan
-    numClusters = 10; % Ganti dengan jumlah cluster yang Anda inginkan
+    numClusters = 10; 
+   
     
     % Terapkan K-Means clustering
     [idx, C] = kmeans(X, numClusters);
