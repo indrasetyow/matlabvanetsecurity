@@ -370,7 +370,7 @@ elseif Yi <= 300
     % vehicle_nodes = [x(idx_mobil), y(idx_mobil)];
 
     
-    % Misalnya, Anda memiliki data x dan y dalam matriks "data"
+    % data x dan y dalam matriks "data"
     x = data.x;
     y = data.y;
     
