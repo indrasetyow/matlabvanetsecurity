@@ -355,7 +355,7 @@ elseif Yi <= 300
     X = [x, y];
     
     % Jumlah cluster yang diinginkan
-    numCluster = 5; 
+    numClusters = 10; 
     
     % Terapkan K-Means clustering
     [idx, C] = kmeans(X, numClusters);
@@ -364,32 +364,21 @@ elseif Yi <= 300
     data.Cluster = idx;
     
 
-    % Definisi label cluster
-    cluster_labels = {'Cluster 1', 'Cluster 2', 'Cluster 3', 'Cluster 4', 'Cluster 5'};
-    
-    
-    % Mendefinisikan palet warna sesuai dengan jumlah cluster
-    colors = jet(numClusters);
 
-    % Plot untuk Clustering
+    cluster_symbols = {'o', 's', 'd', '^', 'v', '>', '<', 'p', 'h', '*'};
+
+
+    % Plot untuk Clustering 
     subplot(7, 1, 7);
     cla;
-    hold on; 
+    hold on;
     
-   % Plot ikon untuk setiap node berdasarkan cluster
-    for i = 1:numClusters  
-        cluster_nodes = X(idx == i, :); % Menggunakan idx yang benar
-        plot(cluster_nodes(:, 1), cluster_nodes(:, 2), cluster_symbols{i}, 'MarkerFaceColor', colors(i, :), 'MarkerSize', 8);
-    
-        text(mean(cluster_nodes(:, 1)), mean(cluster_nodes(:, 2)), cluster_labels{i}, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontWeight', 'bold');
+    % Plot ikon untuk setiap node berdasarkan cluster
+    for i = 1:num_clusters
+        cluster_nodes = node_data(idx == i, :);
+        plot(cluster_nodes(:, 1), cluster_nodes(:, 2), cluster_symbols{i}, ...
+            'MarkerFaceColor', colors(i, :), 'MarkerSize', 8);
     end
-
-    % Plot pusat cluster
-%     for i = 1:numClusters
-%         plot(C(i, 1), C(i, 2), 'o', 'MarkerSize', 12, 'MarkerEdgeColor', 'k', 'MarkerFaceColor', colors(i, :));
-%         text(C(i, 1), C(i, 2), cluster_labels{i}, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontWeight', 'bold');
-%     end
-
     
     % Plot RSU
     plot(rsu_x, rsu_y, 'o', 'MarkerFaceColor', 'cyan', 'MarkerSize', 10);
@@ -397,50 +386,49 @@ elseif Yi <= 300
     
     xlabel('Data x');
     ylabel('Data y');
-    
     % Menghubungkan dua titik koordinat dengan garis berdasarkan nilai unik pada Data_l
     for n = 1:length(Data_l)
-        idx_l = idx & strcmp(l, Data_l(n));
+        idx_l = idx & strcmp(l, Data_l(j));
         x_l = x(idx_l);
         y_l = y(idx_l);
-    
+
         % Menggambar garis yang menghubungkan titik terdekat
         for k = 1:length(x_l)-1
             % Menghitung jarak antara dua titik
             distance2 = sqrt((x_l(k+1) - x_l(k))^2 + (y_l(k+1) - y_l(k))^2);
-    
+
             % Memilih warna berdasarkan jarak
             if distance2 <= 30
                 line_color = 'green'; % Warna hijau untuk jarak <= 30 meter
             elseif distance2 <= 50
                 line_color = 'red'; % Warna merah untuk jarak <= 50 meter
             end
-    
+
             % Menggambar garis dengan warna yang sesuai
             line1 = plot([x_l(k), x_l(k+1)], [y_l(k), y_l(k+1)], '--', 'Color', line_color);
         end
-    
+
         % Menghitung jarak antara titik dengan RSU
         distance_to_rsu = sqrt((x_l - rsu_x).^2 + (y_l - rsu_y).^2);
         idx_rsu = distance_to_rsu <= 30;
-    
+
         % Menghitung jarak antara titik dengan RSU dan overwrite data
         distance_to_rsu = sqrt((x - rsu_x).^2 + (y - rsu_y).^2);
         data.Distance_to_RSU = distance_to_rsu;
-    
+
         % Menggambar garis yang menghubungkan titik dengan RSU
         for k = 1:length(x_l(idx_rsu))
             line1 = plot([x_l(idx_rsu(k)), rsu_x], [y_l(idx_rsu(k)), rsu_y], '--', 'Color', 'cyan');
         end
     end
-    
-    % Menambahkan legenda untuk cluster
-    legend_str = cell(1, numCluster);
-    for i = 1:numCluster
-        legend_str{i} = ['Cluster ' num2str(i)];
+
+%     Menambahkan legenda untuk cluster
+    legend_str = cell(1, num_clusters);
+    for s = 1:num_clusters
+        legend_str{s} = ['Cluster ' num2str(s)];
     end
     legend([legend_str, 'RSU'], 'Location', 'northwest');
-
+        
 
     % Membuat objek V2V dan V2I
     v2vConnection = V2VConnection(data);
