@@ -347,8 +347,6 @@ elseif Yi <= 300
 
     % Extract the x and y coordinates of vehicle nodes
     % vehicle_nodes = [x(idx_mobil), y(idx_mobil)];
-
-
     
     % data x dan y dalam matriks "data"
     x = data.x;
@@ -359,8 +357,7 @@ elseif Yi <= 300
     
     % Jumlah cluster yang diinginkan
     numCluster = 5; 
-    numClusters = 10; 
-   
+    %numClusters = 10;  
     
     % Terapkan K-Means clustering
     [idx, C] = kmeans(X, numClusters);
@@ -368,10 +365,9 @@ elseif Yi <= 300
     % Tambahkan kolom 'Cluster' ke dalam data
     data.Cluster = idx;
     
-
-
     % Definisi label cluster
-    cluster_labels = {'Cluster 1', 'Cluster 2', 'Cluster 3', 'Cluster 4', 'Cluster 5'};
+    %cluster_labels = {'Cluster 1', 'Cluster 2', 'Cluster 3', 'Cluster 4', 'Cluster 5'};
+    cluster_symbols = {'o', 's', 'd', '^', 'v'};
 
     % Visualisasikan hasil clustering
     %figure;
