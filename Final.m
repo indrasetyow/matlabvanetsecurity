@@ -387,9 +387,9 @@ elseif Yi <= 300
     hold on; 
     
    % Plot ikon untuk setiap node berdasarkan cluster
-    for i = 1:numClusters  
-        cluster_nodes = X(idx == i, :); % Menggunakan idx yang benar
-        plot(cluster_nodes(:, 1), cluster_nodes(:, 2), cluster_symbols{i}, 'MarkerFaceColor', colors(i, :), 'MarkerSize', 8);
+    for i = 1:numClusters
+        cluster_nodes = X(idx == i, :);
+        plot(cluster_nodes(:, 1), cluster_nodes(:, 2), 'o', 'MarkerFaceColor', colors(i, :), 'MarkerSize', 8);
     
         text(mean(cluster_nodes(:, 1)), mean(cluster_nodes(:, 2)), cluster_labels{i}, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontWeight', 'bold');
     end
