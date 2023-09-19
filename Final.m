@@ -366,8 +366,8 @@ elseif Yi <= 300
     data.Cluster = idx;
     
     % Definisi label cluster
-    %cluster_labels = {'Cluster 1', 'Cluster 2', 'Cluster 3', 'Cluster 4', 'Cluster 5'};
-    cluster_symbols = {'o', 's', 'd', '^', 'v'};
+    cluster_labels = {'Cluster 1', 'Cluster 2', 'Cluster 3', 'Cluster 4', 'Cluster 5'};
+    %cluster_symbols = {'o', 's', 'd', '^', 'v'};
 
     % Visualisasikan hasil clustering
     %figure;
