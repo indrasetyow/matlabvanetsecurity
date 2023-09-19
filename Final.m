@@ -445,8 +445,8 @@ elseif Yi <= 300
     end
     
     % Menambahkan legenda untuk cluster
-    legend_str = cell(1, numCluster);
-    for i = 1:numCluster
+    legend_str = cell(1, numClusters);
+    for i = 1:numClusters
         legend_str{i} = ['Cluster ' num2str(i)];
     end
     legend([legend_str, 'RSU'], 'Location', 'northwest');
