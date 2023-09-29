@@ -329,7 +329,53 @@ for i = 1:length(Data_t)
     end
     legend('reachable','unreachable', 'RSU', 'Location', 'northwest');
     %legend('mobil','taxi', 'RSU', 'Location', 'northwest');
-           
+    legend('reach','RSU','unreach','Location', 'northwest');
+   
+    pause(0.45);
+    %pause(1.00);
+    % Add the new column to the table
+    data.Kondisi = kondisi;
+    %outputData = table2cell(data);
+    %outputData = {'time','id', 'x', 'y', 'lane', 'type','speed','pos','lane','slope', 'kondisi'};
+    %outputFile = 'Hsimulasitracecount.xlsx';
+
+    %xlswrite(outputFile, outputData, sheet);
+
+    % Extract the x and y coordinates of vehicle nodes
+    % vehicle_nodes = [x(idx_mobil), y(idx_mobil)];
+    
+    % data x dan y dalam matriks "data"
+    x = data.x;
+    y = data.y;
+    
+    % Gabungkan data x dan y ke dalam matriks X
+    X = [x, y];
+    
+    % Jumlah cluster yang diinginkan
+    numClusters = 5; 
+    %numClusters = 10;  
+    
+    % Terapkan K-Means clustering
+    [idx, C] = kmeans(X, numClusters);
+
+    % Tambahkan kolom 'Cluster' ke dalam data
+    data.Cluster = idx;
+    
+    % Definisi label cluster
+    cluster_labels = {'Cluster 1', 'Cluster 2', 'Cluster 3', 'Cluster 4', 'Cluster 5'};
+    %cluster_symbols = {'o', 's', 'd', '^', 'v'};
+
+    % Visualisasikan hasil clustering
+    %figure;
+    %gscatter(x, y, idx);
+    %title('Clustering Berdasarkan Data x dan y');
+    %xlabel('Data x');
+    %ylabel('Data y');
+    %legend('Cluster 1', 'Cluster 2', 'Cluster 3', 'Cluster 4', 'Cluster 5', 'Cluster 6', 'Cluster 7', 'Cluster 8', 'Cluster 9', 'Cluster 10'); % Sesuaikan dengan jumlah cluster yang Dipilih
+    
+    
+    % Mendefinisikan palet warna sesuai dengan jumlah cluster
+    colors = jet(numClusters);
 
     % Plot untuk Clustering
     subplot(4, 1, 4);
@@ -341,6 +387,27 @@ for i = 1:length(Data_t)
     text(rsu_x, rsu_y, 'RSU', 'HorizontalAlignment', 'left')
     plot(rsu_x, rsu_y, 'o', 'MarkerFaceColor', 'cyan');
     hold on;
+   % Plot ikon untuk setiap node berdasarkan cluster
+    for i = 1:numClusters
+        cluster_nodes = X(idx == i, :);
+        plot(cluster_nodes(:, 1), cluster_nodes(:, 2), 'o', 'MarkerFaceColor', colors(i, :), 'MarkerSize', 8);
+    
+        text(mean(cluster_nodes(:, 1)), mean(cluster_nodes(:, 2)), cluster_labels{i}, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontWeight', 'bold');
+    end
+
+    % Plot pusat cluster
+%     for i = 1:numClusters
+%         plot(C(i, 1), C(i, 2), 'o', 'MarkerSize', 12, 'MarkerEdgeColor', 'k', 'MarkerFaceColor', colors(i, :));
+%         text(C(i, 1), C(i, 2), cluster_labels{i}, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontWeight', 'bold');
+%     end
+
+    
+    % Plot RSU
+    plot(rsu_x, rsu_y, 'o', 'MarkerFaceColor', 'cyan', 'MarkerSize', 10);
+    text(rsu_x, rsu_y, ' RSU ', 'HorizontalAlignment', 'left')
+    
+    xlabel('Data x');
+    ylabel('Data y');
     
     % Menghubungkan dua titik koordinat dengan garis berdasarkan nilai unik pada Data_l
     for j = 1:length(Data_l)
@@ -417,6 +484,10 @@ for i = 1:length(Data_t)
         % Plot centroid cluster dengan tanda X
         scatter3(C(cluster, 1), C(cluster, 2), C(cluster, 3), 200, color, 'X', 'LineWidth', 2);
         hold on;
+    % Menambahkan legenda untuk cluster
+    legend_str = cell(1, numClusters);
+    for i = 1:numClusters
+        legend_str{i} = ['Cluster ' num2str(i)];
     end
       
     
