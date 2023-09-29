@@ -7,7 +7,6 @@ x = data.x;
 y = data.y;
 l = data.lane;
 p = data.type;
-a = data.angle;
 
 f_5G = 5.9; % Standar VANET 802.11p (Ghz)
 f_6G = 6; % Perkiraan frekuensi yang digunakan pada 6G
@@ -82,7 +81,7 @@ hold on;
 subplot(4, 1, 4);
 axis([-50 350 -40 120]);
 title('Jalur PKU Cluster');
-xlabel('Data x'); 
+xlabel('Data x');
 ylabel('Data y');
 zlabel('Normalized Angle');
 grid on;
@@ -329,55 +328,8 @@ for i = 1:length(Data_t)
     end
     legend('reachable','unreachable', 'RSU', 'Location', 'northwest');
     %legend('mobil','taxi', 'RSU', 'Location', 'northwest');
-    legend('reach','RSU','unreach','Location', 'northwest');
-   
-    pause(0.45);
-    %pause(1.00);
-    % Add the new column to the table
-    data.Kondisi = kondisi;
-    %outputData = table2cell(data);
-    %outputData = {'time','id', 'x', 'y', 'lane', 'type','speed','pos','lane','slope', 'kondisi'};
-    %outputFile = 'Hsimulasitracecount.xlsx';
-
-    %xlswrite(outputFile, outputData, sheet);
-
-    % Extract the x and y coordinates of vehicle nodes
-    % vehicle_nodes = [x(idx_mobil), y(idx_mobil)];
-    
-    % data x dan y dalam matriks "data"
-    x = data.x;
-    y = data.y;
-    
-    % Gabungkan data x dan y ke dalam matriks X
-    X = [x, y];
-    
-    % Jumlah cluster yang diinginkan
-    numClusters = 5; 
-    %numClusters = 10;  
-    
-    % Terapkan K-Means clustering
-    [idx, C] = kmeans(X, numClusters);
-
-    % Tambahkan kolom 'Cluster' ke dalam data
-    data.Cluster = idx;
-    
-    % Definisi label cluster
-    cluster_labels = {'Cluster 1', 'Cluster 2', 'Cluster 3', 'Cluster 4', 'Cluster 5'};
-    %cluster_symbols = {'o', 's', 'd', '^', 'v'};
-
-    % Visualisasikan hasil clustering
-    %figure;
-    %gscatter(x, y, idx);
-    %title('Clustering Berdasarkan Data x dan y');
-    %xlabel('Data x');
-    %ylabel('Data y');
-    %legend('Cluster 1', 'Cluster 2', 'Cluster 3', 'Cluster 4', 'Cluster 5', 'Cluster 6', 'Cluster 7', 'Cluster 8', 'Cluster 9', 'Cluster 10'); % Sesuaikan dengan jumlah cluster yang Dipilih
     
     
-    % Mendefinisikan palet warna sesuai dengan jumlah cluster
-    colors = jet(numClusters);
-
-    % Plot untuk Clustering
     subplot(4, 1, 4);
     cla;
     
@@ -387,27 +339,6 @@ for i = 1:length(Data_t)
     text(rsu_x, rsu_y, 'RSU', 'HorizontalAlignment', 'left')
     plot(rsu_x, rsu_y, 'o', 'MarkerFaceColor', 'cyan');
     hold on;
-   % Plot ikon untuk setiap node berdasarkan cluster
-    for i = 1:numClusters
-        cluster_nodes = X(idx == i, :);
-        plot(cluster_nodes(:, 1), cluster_nodes(:, 2), 'o', 'MarkerFaceColor', colors(i, :), 'MarkerSize', 8);
-    
-        text(mean(cluster_nodes(:, 1)), mean(cluster_nodes(:, 2)), cluster_labels{i}, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontWeight', 'bold');
-    end
-
-    % Plot pusat cluster
-%     for i = 1:numClusters
-%         plot(C(i, 1), C(i, 2), 'o', 'MarkerSize', 12, 'MarkerEdgeColor', 'k', 'MarkerFaceColor', colors(i, :));
-%         text(C(i, 1), C(i, 2), cluster_labels{i}, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontWeight', 'bold');
-%     end
-
-    
-    % Plot RSU
-    plot(rsu_x, rsu_y, 'o', 'MarkerFaceColor', 'cyan', 'MarkerSize', 10);
-    text(rsu_x, rsu_y, ' RSU ', 'HorizontalAlignment', 'left')
-    
-    xlabel('Data x');
-    ylabel('Data y');
     
     % Menghubungkan dua titik koordinat dengan garis berdasarkan nilai unik pada Data_l
     for j = 1:length(Data_l)
@@ -484,63 +415,17 @@ for i = 1:length(Data_t)
         % Plot centroid cluster dengan tanda X
         scatter3(C(cluster, 1), C(cluster, 2), C(cluster, 3), 200, color, 'X', 'LineWidth', 2);
         hold on;
-    % Menambahkan legenda untuk cluster
-    legend_str = cell(1, numClusters);
-    for i = 1:numClusters
-        legend_str{i} = ['Cluster ' num2str(i)];
     end
-      
+
     
     
     % Menampilkan legenda
-    legend('RSU', 'Cluster 1', 'Centroid 1', 'Cluster 2', 'Centroid 2', 'Cluster 3', 'Centroid 3', 'Cluster 4', 'Centroid 4', 'Location', 'northwest');
+    legend('RSU', 'Cluster 1', 'Head Cluster 1', 'Cluster 2', 'Head Cluster 2', 'Cluster 3', 'Head Cluster 3', 'Cluster 4', 'Head Cluster 4', 'Location', 'northwest');
 
-    % Menghubungkan dua titik koordinat dengan garis berdasarkan nilai unik pada Data_l
-    for j = 1:length(Data_l)
-        idx_l = idx == strcmp(l, Data_l(j));
-        x_l = x(idx_l);
-        y_l = y(idx_l);
-        id_l = data.id(idx_l); % Kolom id dari data
-        type_l = data.type(idx_l); % Kolom type dari data
 
-        % Menggambar garis yang menghubungkan titik terdekat
-        for k = 1:length(x_l)-1
-            % Menghitung jarak antara dua titik
-            distance2 = sqrt((x_l(k+1) - x_l(k))^2 + (y_l(k+1) - y_l(k))^2);
 
-            % Memilih warna berdasarkan jarak
-            if distance2 <= 30
-                line_color = 'green'; % Warna hijau untuk jarak <= 30 meter
-            elseif distance2 <= 50
-                line_color = 'red'; % Warna merah untuk jarak <= 50 meter
-            end
-
-            % Menggambar garis dengan warna yang sesuai
-           % line1 = plot([x_l(k), x_l(k+1)], [y_l(k), y_l(k+1)], '--', 'Color', line_color);
-        end
-
-        % Menghitung jarak antara titik dengan RSU
-        distance_to_rsu = sqrt((x_l - rsu_x).^2 + (y_l - rsu_y).^2);
-        idx_rsu = distance_to_rsu <= 30;
-
-        % Menghitung jarak antara titik dengan RSU dan overwrite data
-        distance_to_rsu = sqrt((x - rsu_x).^2 + (y - rsu_y).^2);
-        data.Distance_to_RSU = distance_to_rsu;
-
-        % Menggambar garis yang menghubungkan titik dengan RSU
-        for k = 1:length(x_l(idx_rsu))
-            %line1 = plot([x_l(idx_rsu(k)), rsu_x], [y_l(idx_rsu(k)), rsu_y], '--', 'Color', 'cyan');
-        end
-    end
-    
-  
-    
         
-        
-
-
-   
-    pause(0.25);
+    pause(1.00);
 
     % Add the new column to the table
     data.Kondisi = kondisi;
@@ -552,7 +437,8 @@ for i = 1:length(Data_t)
 
 
     % Write the updated table back to Excel
-   writetable(data, filename, 'Sheet', sheet, 'WriteVariableNames', true);
+   %writetable(data, filename, 'Sheet', sheet, 'WriteVariableNames', true);
 end
 
 hold off;
+    
