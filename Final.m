@@ -7,6 +7,7 @@ x = data.x;
 y = data.y;
 l = data.lane;
 p = data.type;
+speed = data.speed;
 
 f_5G = 5.9; % Standar VANET 802.11p (Ghz)
 f_6G = 6; % Perkiraan frekuensi yang digunakan pada 6G
@@ -377,23 +378,52 @@ for i = 1:length(Data_t)
     data_angle = a; 
     min_angle = min(data_angle);
     max_angle = max(data_angle);
+
+    % Menambahkan nilai minimum dan maksimum dari data kecepatan
+    min_speed = min(speed);
+    max_speed = max(speed);
+
     
     % Normalisasi data sudut ke rentang yang sama dengan data x dan y
     min_range = min(x); 
     max_range = max(x); 
     
+    % Normalisasi data Speed
+    normalized_speed = min_range + ((speed - min_speed) / (max_speed - min_speed)) * (max_range - min_range);
+
+    % Normalisasi data angle
     normalized_angle = min_range + ((data_angle - min_angle) / (max_angle - min_angle)) * (max_range - min_range);
     
+
+    % Menggabungkan data kecepatan yang telah dinormlaisasi
+    data_xy_angle_speed = [x(idx), y(idx), normalized_angle(idx), normalized_speed(idx)];
+
+
     % Menambahkan clustering K-Means menggunakan data x, y, dan sudut yang telah dinormalisasi
     data_xy_angle = [x(idx), y(idx), normalized_angle(idx)];
-    k = 4; % Ubah jumlah cluster menjadi 4
+    k = 4; % jumlah cluster menjadi 4
     
+
+    % membuat perhitungan dengan memanggil function clustering K-Means 
+    % memasukkan idx kedalam iterasi dan membuat variable idx_kmeans untuk
+    % menyimpan hasil clustering dengan cluster index yang ditetapkan
+    % data_xy_angle yang dikaitkan dengan variable k cluster yang ditentukan
+    % variable C untuk menyimpan koordinat Centroid pusat dari masing
+    % masing cluster, k untuk memanggil variable jumlah cluster untuk
+    % dimasukkan kedalam proses perhitungan. 
+    % 'Distance', 'sqeuclidean'merupakan paramter untuk menentukan metrik
+    % jarak menggunakan rumus persamaan eqeulidean  
+    % 'Replicates', 5' merupakan parameter untuk mengontrol jumlah iterasi
+    % yang akan dilakukan oleh algoritma K-means K-means melakukan 5 kali
+    % perhitungan dengan titik awal yang berbeda untuk hasil iterasi yang
+    % terbaik
     [idx_kmeans, C] = kmeans(data_xy_angle, k, 'Distance', 'sqeuclidean', 'Replicates', 5);
     
     % Menggambar hasil clustering dengan warna yang berbeda
     for cluster = 1:k
         cluster_points = data_xy_angle(idx_kmeans == cluster, :);
-    
+    % menggunakan loop untuk memisahkan clustering dengan warna dan marker
+    % yang berbeda untuk tiap cluster
         if cluster == 1
             marker = 'h'; 
             color = 'blue';
@@ -415,17 +445,40 @@ for i = 1:length(Data_t)
         % Plot centroid cluster dengan tanda X
         scatter3(C(cluster, 1), C(cluster, 2), C(cluster, 3), 200, color, 'X', 'LineWidth', 2);
         hold on;
+
+        % Menambahkan label jenis kendaraan pada titik-titik data
+        for i = 1:size(cluster_points, 1)
+            x_label = cluster_points(i, 1);
+            y_label = cluster_points(i, 2);
+            z_label = cluster_points(i, 3);
+            vehicle_label = p(idx_kmeans == cluster); % Mengambil label jenis kendaraan sesuai dengan cluster
+        
+            text(x_label, y_label, z_label, vehicle_label{i}, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'top', 'FontSize', 8, 'Color', color);
+            hold on;
+        end
+        % Menambahkan label kecepatan (speed) pada titik-titik data yang sudah dinormalisasi
+        for i = 1:size(cluster_points, 1)
+            x_label = cluster_points(i, 1);
+            y_label = cluster_points(i, 2);
+            z_label = cluster_points(i, 3);
+            speed_label = normalized_speed(idx_kmeans == cluster); % Mengambil data kecepatan yang sesuai dengan cluster
+        
+            text_str = sprintf('%.2f', speed_label(i)); % Menampilkan label kecepatan dengan dua angka desimal
+            text(x_label, y_label, z_label, text_str, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontSize', 8, 'Color', color);
+            hold on;
+        end
     end
 
     
     
+    
     % Menampilkan legenda
-    legend('RSU', 'Cluster 1', 'Head Cluster 1', 'Cluster 2', 'Head Cluster 2', 'Cluster 3', 'Head Cluster 3', 'Cluster 4', 'Head Cluster 4', 'Location', 'northwest');
+    legend('RSU', 'Cluster 1', 'Centroid 1', 'Cluster 2', 'Centroid 2', 'Cluster 3', 'Centroid 3', 'Cluster 4', 'Centroid 4', 'Location', 'northwest');
 
 
 
         
-    pause(1.00);
+    pause(0.45);
 
     % Add the new column to the table
     data.Kondisi = kondisi;
