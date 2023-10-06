@@ -74,18 +74,18 @@ hold on;
 
 subplot(4, 1, 3);
 axis([-50 350 -40 120]);
-title('Jalur PKU Reachable dan Unreachable');
+title('Jalur PKU Cluster');
 xlabel('Data x');
 ylabel('Data y');
+zlabel('Normalized Angle');
 grid on;
 hold on;
 
 subplot(4, 1, 4);
 axis([-50 350 -40 120]);
-title('Jalur PKU Cluster');
+title('Jalur PKU Reachable dan Unreachable');
 xlabel('Data x');
 ylabel('Data y');
-zlabel('Normalized Angle');
 grid on;
 hold on;
 
@@ -263,76 +263,10 @@ for i = 1:length(Data_t)
     hold on;
     legend('mobil&taxi', 'Location', 'northwest');
    
-    % Plot untuk Reachable dan Unreachable
+    
+    
+    
     subplot(4, 1, 3);
-    cla;
-    plot(x(idx_mobil), y(idx_mobil), 'o', 'MarkerFaceColor', 'Green');
-    hold on;
-    plot(x(idx_taxi), y(idx_taxi), 'o', 'MarkerFaceColor', 'Red');
-    hold on;
-    text(rsu_x, rsu_y, 'RSU', 'HorizontalAlignment', 'left')
-    hold on;
-    plot(rsu_x, rsu_y, 'o', 'MarkerFaceColor', 'cyan');
-    hold on;
-
-    % Menghubungkan dua titik koordinat dengan garis berdasarkan nilai unik pada Data_l
-    for j = 1:length(Data_l)
-        idx_l = idx & strcmp(l, Data_l(j));
-        x_l = x(idx_l);
-        y_l = y(idx_l);
-        id_l = data.id(idx_l); % Kolom id dari data
-        type_l = data.type(idx_l); % Kolom type dari data
-
-        % Menggambar garis yang menghubungkan titik terdekat
-        for k = 1:length(x_l)-1
-            % Menghitung jarak antara dua titik
-            distance2 = sqrt((x_l(k+1) - x_l(k))^2 + (y_l(k+1) - y_l(k))^2);
-
-            % Memilih warna berdasarkan jarak
-            if distance2 <= 30
-                line_color = 'green'; % Warna hijau untuk jarak <= 30 meter
-            elseif distance2 <= 50
-                line_color = 'red'; % Warna merah untuk jarak <= 50 meter
-            end
-
-            % Menggambar garis dengan warna yang sesuai
-            line1 = plot([x_l(k), x_l(k+1)], [y_l(k), y_l(k+1)], '--', 'Color', line_color);
-        end
-
-        % Menghitung jarak antara titik dengan RSU
-        distance_to_rsu = sqrt((x_l - rsu_x).^2 + (y_l - rsu_y).^2);
-        idx_rsu = distance_to_rsu <= 30;
-
-        % Menghitung jarak antara titik dengan RSU dan overwrite data
-        distance_to_rsu = sqrt((x - rsu_x).^2 + (y - rsu_y).^2);
-        data.Distance_to_RSU = distance_to_rsu;
-
-        % Menggambar garis yang menghubungkan titik dengan RSU
-        for k = 1:length(x_l(idx_rsu))
-            line1 = plot([x_l(idx_rsu(k)), rsu_x], [y_l(idx_rsu(k)), rsu_y], '--', 'Color', 'cyan');
-        end
-        
-        % Memberikan warna pada mobil & taxi ketika jarak >= 300
-        for k = 1:size(x_l)
-            Xi = x_l(k);
-            Yi = y_l(k);
-            id_i = id_l(k); % Id kendaraan
-            type_i = type_l{k}; % Type kendaraan
-            if Xi <= 300 && sqrt((Xi - rsu_x).^2 + (Yi - rsu_y).^2) <= 30
-                node_color = 'Green';
-            elseif Yi <= 300 
-                node_color = 'Red';
-            end
-            plot(Xi, Yi, 'o', 'MarkerFaceColor', node_color);
-            %text(Xi, Yi, [' ' id_i ,  type_i], 'Color', 'black', 'FontSize', 8);
-            %text(Xi, Yi, [type_i], 'Color', 'black', 'FontSize', 8);
-        end
-    end
-    legend('reachable','unreachable', 'RSU', 'Location', 'northwest');
-    %legend('mobil','taxi', 'RSU', 'Location', 'northwest');
-    
-    
-    subplot(4, 1, 4);
     cla;
     
     % Plot titik koordinat RSU 
@@ -404,20 +338,6 @@ for i = 1:length(Data_t)
     data_xy_angle = [x(idx), y(idx), normalized_angle(idx)];
     k = 4; % jumlah cluster menjadi 4
     
-
-    % membuat perhitungan dengan memanggil function clustering K-Means 
-    % memasukkan idx kedalam iterasi dan membuat variable idx_kmeans untuk
-    % menyimpan hasil clustering dengan cluster index yang ditetapkan
-    % data_xy_angle yang dikaitkan dengan variable k cluster yang ditentukan
-    % variable C untuk menyimpan koordinat Centroid pusat dari masing
-    % masing cluster, k untuk memanggil variable jumlah cluster untuk
-    % dimasukkan kedalam proses perhitungan. 
-    % 'Distance', 'sqeuclidean'merupakan paramter untuk menentukan metrik
-    % jarak menggunakan rumus persamaan eqeulidean  
-    % 'Replicates', 5' merupakan parameter untuk mengontrol jumlah iterasi
-    % yang akan dilakukan oleh algoritma K-means K-means melakukan 5 kali
-    % perhitungan dengan titik awal yang berbeda untuk hasil iterasi yang
-    % terbaik
     [idx_kmeans, C] = kmeans(data_xy_angle, k, 'Distance', 'sqeuclidean', 'Replicates', 5);
     
     % Menggambar hasil clustering dengan warna yang berbeda
@@ -477,6 +397,103 @@ for i = 1:length(Data_t)
     legend('RSU', 'Cluster 1', 'Centroid 1', 'Cluster 2', 'Centroid 2', 'Cluster 3', 'Centroid 3', 'Cluster 4', 'Centroid 4', 'Location', 'northwest');
 
 
+    % Plot untuk Reachable dan Unreachable
+    subplot(4, 1, 4);
+    cla;
+    plot(x(idx_mobil), y(idx_mobil), 'o', 'MarkerFaceColor', 'Green');
+    hold on;
+    plot(x(idx_taxi), y(idx_taxi), 'o', 'MarkerFaceColor', 'Red');
+    hold on;
+    text(rsu_x, rsu_y, 'RSU', 'HorizontalAlignment', 'left')
+    hold on;
+    plot(rsu_x, rsu_y, 'o', 'MarkerFaceColor', 'cyan');
+    hold on;
+
+
+    % Menambahkan centroid cluster dengan tanda X dan warna berdasarkan kondisi
+    for cluster = 1:k
+        % Pastikan cluster tidak melebihi jumlah centroid yang ditemukan
+        if cluster <= size(C, 1)
+            centroid_x = C(cluster, 1);
+            centroid_y = C(cluster, 2);
+            centroid_z = C(cluster, 3);
+    
+            % Menghitung jarak antara centroid dengan RSU
+            distance_to_rsu = sqrt((centroid_x - rsu_x)^2 + (centroid_y - rsu_y)^2);
+    
+            % Memilih warna berdasarkan jarak
+            if distance_to_rsu <= 30
+                centroid_color = 'green'; % Warna hijau untuk jarak <= 30 meter
+            else
+                centroid_color = 'red'; % Warna merah untuk jarak > 30 meter
+            end
+    
+            % Plot centroid cluster dengan tanda X dan warna yang sesuai
+            scatter3(centroid_x, centroid_y, centroid_z, 200, centroid_color, 'X', 'LineWidth', 2);
+            hold on;
+        else
+            % Handle jika indeks melebihi jumlah centroid yang ditemukan
+            disp('Indeks melebihi batas array.');
+        end
+    end
+
+
+
+    % Menghubungkan dua titik koordinat dengan garis berdasarkan nilai unik pada Data_l
+    for j = 1:length(Data_l)
+        idx_l = idx & strcmp(l, Data_l(j));
+        x_l = x(idx_l);
+        y_l = y(idx_l);
+        id_l = data.id(idx_l); % Kolom id dari data
+        type_l = data.type(idx_l); % Kolom type dari data
+
+        % Menggambar garis yang menghubungkan titik terdekat
+        for k = 1:length(x_l)-1
+            % Menghitung jarak antara dua titik
+            distance2 = sqrt((x_l(k+1) - x_l(k))^2 + (y_l(k+1) - y_l(k))^2);
+
+            % Memilih warna berdasarkan jarak
+            if distance2 <= 30
+                line_color = 'green'; % Warna hijau untuk jarak <= 30 meter
+            elseif distance2 <= 50
+                line_color = 'red'; % Warna merah untuk jarak <= 50 meter
+            end
+
+            % Menggambar garis dengan warna yang sesuai
+            line1 = plot([x_l(k), x_l(k+1)], [y_l(k), y_l(k+1)], '--', 'Color', line_color);
+        end
+
+        % Menghitung jarak antara titik dengan RSU
+        distance_to_rsu = sqrt((x_l - rsu_x).^2 + (y_l - rsu_y).^2);
+        idx_rsu = distance_to_rsu <= 30;
+
+        % Menghitung jarak antara titik dengan RSU dan overwrite data
+        distance_to_rsu = sqrt((x - rsu_x).^2 + (y - rsu_y).^2);
+        data.Distance_to_RSU = distance_to_rsu;
+
+        % Menggambar garis yang menghubungkan titik dengan RSU
+        for k = 1:length(x_l(idx_rsu))
+            line1 = plot([x_l(idx_rsu(k)), rsu_x], [y_l(idx_rsu(k)), rsu_y], '--', 'Color', 'cyan');
+        end
+        
+        % Memberikan warna pada mobil & taxi ketika jarak >= 300
+        for k = 1:size(x_l)
+            Xi = x_l(k);
+            Yi = y_l(k);
+            id_i = id_l(k); % Id kendaraan
+            type_i = type_l{k}; % Type kendaraan
+            if Xi <= 300 && sqrt((Xi - rsu_x).^2 + (Yi - rsu_y).^2) <= 30
+                node_color = 'Green';
+            elseif Yi <= 300 
+                node_color = 'Red';
+            end
+            plot(Xi, Yi, 'o', 'MarkerFaceColor', node_color);
+            %text(Xi, Yi, [' ' id_i ,  type_i], 'Color', 'black', 'FontSize', 8);
+            %text(Xi, Yi, [type_i], 'Color', 'black', 'FontSize', 8);
+        end
+    end
+    legend('reachable','unreachable', 'RSU', 'Location', 'northwest');
+    %legend('mobil','taxi', 'RSU', 'Location', 'northwest');
 
         
     pause(0.45);
