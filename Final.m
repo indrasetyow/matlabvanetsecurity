@@ -8,6 +8,7 @@ y = data.y;
 l = data.lane;
 p = data.type;
 speed = data.speed;
+a = data.angle;
 
 f_5G = 5.9; % Standar VANET 802.11p (Ghz)
 f_6G = 6; % Perkiraan frekuensi yang digunakan pada 6G
