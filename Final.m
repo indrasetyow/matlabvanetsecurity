@@ -343,7 +343,6 @@ for i = 1:length(Data_t)
     % Menggambar hasil clustering dengan warna yang berbeda
     for cluster = 1:k
         cluster_points = data_xy_angle(idx_kmeans == cluster, :);
-    % menggunakan loop untuk memisahkan clustering dengan warna dan marker
     % yang berbeda untuk tiap cluster
         if cluster == 1
             marker = 'h'; 
@@ -374,7 +373,7 @@ for i = 1:length(Data_t)
             z_label = cluster_points(i, 3);
             vehicle_label = p(idx_kmeans == cluster); % Mengambil label jenis kendaraan sesuai dengan cluster
         
-            text(x_label, y_label, z_label, vehicle_label{i}, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'top', 'FontSize', 8, 'Color', color);
+%             text(x_label, y_label, z_label, vehicle_label{i}, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'top', 'FontSize', 8, 'Color', color);
             hold on;
         end
         % Menambahkan label kecepatan (speed) pada titik-titik data yang sudah dinormalisasi
@@ -384,8 +383,8 @@ for i = 1:length(Data_t)
             z_label = cluster_points(i, 3);
             speed_label = normalized_speed(idx_kmeans == cluster); % Mengambil data kecepatan yang sesuai dengan cluster
         
-            text_str = sprintf('%.2f', speed_label(i)); % Menampilkan label kecepatan dengan dua angka desimal
-            text(x_label, y_label, z_label, text_str, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontSize', 8, 'Color', color);
+%             text_str = sprintf('%.2f', speed_label(i)); % Menampilkan label kecepatan dengan dua angka desimal
+%             text(x_label, y_label, z_label, text_str, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontSize', 8, 'Color', color);
             hold on;
         end
     end
@@ -400,10 +399,10 @@ for i = 1:length(Data_t)
     % Plot untuk Reachable dan Unreachable
     subplot(4, 1, 4);
     cla;
-    plot(x(idx_mobil), y(idx_mobil), 'o', 'MarkerFaceColor', 'Green');
-    hold on;
-    plot(x(idx_taxi), y(idx_taxi), 'o', 'MarkerFaceColor', 'Red');
-    hold on;
+%     plot(x(idx_mobil), y(idx_mobil), 'o', 'MarkerFaceColor', 'Green');
+%     hold on;
+%     plot(x(idx_taxi), y(idx_taxi), 'o', 'MarkerFaceColor', 'Red');
+%     hold on;
     text(rsu_x, rsu_y, 'RSU', 'HorizontalAlignment', 'left')
     hold on;
     plot(rsu_x, rsu_y, 'o', 'MarkerFaceColor', 'cyan');
@@ -412,7 +411,22 @@ for i = 1:length(Data_t)
 
     % Menambahkan centroid cluster dengan tanda X dan warna berdasarkan kondisi
     for cluster = 1:k
-        % Pastikan cluster tidak melebihi jumlah centroid yang ditemukan
+        for cluster1 = 1:k
+            % Pastikan cluster tidak melebihi jumlah centroid yang ditemukan
+            for cluster2 = 1:k
+                % Check if both clusters belong to the same cluster
+                if cluster1 == cluster2
+                    cluster_points1 = C(cluster1, :);
+                    cluster_points2 = C(cluster2, :);
+                    % Connect the two head clusters with a line
+                    if cluster1 ~= cluster2
+                        line([cluster_points1(1), cluster_points2(1)], ...
+                             [cluster_points1(2), cluster_points2(2)], ...
+                             [cluster_points1(3), cluster_points2(3)], 'Color', color, 'LineStyle', '-', 'LineWidth', 2);
+                    end
+                end
+            end
+        end 
         if cluster <= size(C, 1)
             centroid_x = C(cluster, 1);
             centroid_y = C(cluster, 2);
@@ -447,21 +461,7 @@ for i = 1:length(Data_t)
         id_l = data.id(idx_l); % Kolom id dari data
         type_l = data.type(idx_l); % Kolom type dari data
 
-        % Menggambar garis yang menghubungkan titik terdekat
-        for k = 1:length(x_l)-1
-            % Menghitung jarak antara dua titik
-            distance2 = sqrt((x_l(k+1) - x_l(k))^2 + (y_l(k+1) - y_l(k))^2);
-
-            % Memilih warna berdasarkan jarak
-            if distance2 <= 30
-                line_color = 'green'; % Warna hijau untuk jarak <= 30 meter
-            elseif distance2 <= 50
-                line_color = 'red'; % Warna merah untuk jarak <= 50 meter
-            end
-
-            % Menggambar garis dengan warna yang sesuai
-            line1 = plot([x_l(k), x_l(k+1)], [y_l(k), y_l(k+1)], '--', 'Color', line_color);
-        end
+        
 
         % Menghitung jarak antara titik dengan RSU
         distance_to_rsu = sqrt((x_l - rsu_x).^2 + (y_l - rsu_y).^2);
@@ -471,28 +471,28 @@ for i = 1:length(Data_t)
         distance_to_rsu = sqrt((x - rsu_x).^2 + (y - rsu_y).^2);
         data.Distance_to_RSU = distance_to_rsu;
 
-        % Menggambar garis yang menghubungkan titik dengan RSU
-        for k = 1:length(x_l(idx_rsu))
-            line1 = plot([x_l(idx_rsu(k)), rsu_x], [y_l(idx_rsu(k)), rsu_y], '--', 'Color', 'cyan');
-        end
+%         % Menggambar garis yang menghubungkan titik dengan RSU
+%         for k = 1:length(x_l(idx_rsu))
+%             line1 = plot([x_l(idx_rsu(k)), rsu_x], [y_l(idx_rsu(k)), rsu_y], '--', 'Color', 'cyan');
+%         end
         
-        % Memberikan warna pada mobil & taxi ketika jarak >= 300
-        for k = 1:size(x_l)
-            Xi = x_l(k);
-            Yi = y_l(k);
-            id_i = id_l(k); % Id kendaraan
-            type_i = type_l{k}; % Type kendaraan
-            if Xi <= 300 && sqrt((Xi - rsu_x).^2 + (Yi - rsu_y).^2) <= 30
-                node_color = 'Green';
-            elseif Yi <= 300 
-                node_color = 'Red';
-            end
-            plot(Xi, Yi, 'o', 'MarkerFaceColor', node_color);
+%         % Memberikan warna pada mobil & taxi ketika jarak >= 300
+%         for k = 1:size(x_l)
+%             Xi = x_l(k);
+%             Yi = y_l(k);
+%             id_i = id_l(k); % Id kendaraan
+%             type_i = type_l{k}; % Type kendaraan
+%             if Xi <= 300 && sqrt((Xi - rsu_x).^2 + (Yi - rsu_y).^2) <= 30
+%                 node_color = 'Green';
+%             elseif Yi <= 300 
+%                 node_color = 'Red';
+%             end
+            %plot(Xi, Yi, 'o', 'MarkerFaceColor', node_color);
             %text(Xi, Yi, [' ' id_i ,  type_i], 'Color', 'black', 'FontSize', 8);
             %text(Xi, Yi, [type_i], 'Color', 'black', 'FontSize', 8);
-        end
+%         end
     end
-    legend('reachable','unreachable', 'RSU', 'Location', 'northwest');
+    legend('RSU', 'Centroids', 'Location', 'northwest');
     %legend('mobil','taxi', 'RSU', 'Location', 'northwest');
 
         
