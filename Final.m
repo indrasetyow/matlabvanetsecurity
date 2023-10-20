@@ -25,11 +25,11 @@ B6 = 30;
 
 %B5 = 40; % Bandwidth yang digunakan pada dalam satuan MHz
 %B6 = 80; % Bandwidth yang digunakan pada dalam satuan MHz
-start1 = 1;
+start1 = 11;
 
 figure; % Membuat figure baru
 
-subplot(4, 1, 1);
+subplot(5, 1, 1);
 axis([-50 350 -40 120]);
 title('Jalur PKU');
 xlabel('Data x');
@@ -63,7 +63,7 @@ hold on;
 % grid on;
 % hold on;
 
-subplot(4, 1, 2); % Subplot untuk menghitung reachable
+subplot(5, 1, 2); % Subplot untuk menghitung reachable
 %axis('auto');
 axis([10 inf 0 inf]);
 title('TraceCount Reachable');
@@ -72,7 +72,7 @@ ylabel('Duration (s)');
 grid on;
 hold on;
 
-subplot(4, 1, 3);
+subplot(5, 1, 3);
 axis([-50 350 -40 120]);
 title('Jalur PKU Cluster');
 xlabel('Data x');
@@ -81,9 +81,17 @@ zlabel('Normalized Angle');
 grid on;
 hold on;
 
-subplot(4, 1, 4);
+subplot(5, 1, 4);
 axis([-50 350 -40 120]);
 title('Jalur PKU Reachable dan Unreachable');
+xlabel('Data x');
+ylabel('Data y');
+grid on;
+hold on;
+
+subplot(5, 1, 5);
+axis([-50 350 -40 120]);
+title('Jalur PKU serangan Blackhole');
 xlabel('Data x');
 ylabel('Data y');
 grid on;
@@ -105,50 +113,12 @@ traceCount = [];
 reachableDuration = [];
 
 for i = 1:length(Data_t)
-    subplot(4, 1, 1);
+    subplot(5, 1, 1);
     cla;
     idx = t == Data_t(i);
     xy_array = [xy_array; x(idx) y(idx)];
     distance1 = sqrt((xy_array(:, 1).^2) + (xy_array(:, 2).^2));
 
-%     % Menghitung path loss dB
-%     dB5 = 20*log10(distance1/3600) + 20*log10(f_5G) + K;
-%     dB6 = 20*log10(distance1/3600) + 20*log10(f_6G) + K;
-%     dB_avg5 = [dB_avg5; mean(dB5)];
-%     dB_avg6 = [dB_avg6; mean(dB6)];
-% 
-% 
-%     % Menghitung delay berdasarkan jarak (delay itu kendaraan semakin banyak maka delay semakin besar)
-%     delay5 = 4 + 10 * 3 * log(distance1); % Model log-distance path loss
-%     delay6 = 2 + 10 * 3 * log(distance1);
-%     delay_avg5 = [delay_avg5; mean(delay5)];
-%     delay_avg6 = [delay_avg6; mean(delay6)];
-
-    %K5 = 10.^(dB5/10); % Menentukan linier dengan menggunakan dB
-    %K6 = 10.^(dB6/10);
-    %delay5 = log10(distance1).*K5;
-    %delay6 = log10(distance1).*K6;
-    %delay_avg5 = [delay_avg5; mean(delay5)];
-    %delay_avg6 = [delay_avg6; mean(delay6)];
-
-%     % Menghitung throughput
-%     Throughput5 = A5 - B5 * log10(distance1); % Model Log-Distance
-%     Throughput_avg5 = [Throughput_avg5; mean(Throughput5)];
-% 
-%     Throughput6 = A6 - B6 * log10(distance1); % Model Log-Distance
-%     Throughput_avg6 = [Throughput_avg6; mean(Throughput6)];
-
-
-    %Throughput = A *log10(distance1)-B; % Model Log-Distance dlm linier
-    %Throughput_avg = [Throughput_avg; mean(Throughput)];
-
-    %Throughput = A - B * log10(distance1); % Model Log-Distance
-    %Throughput_avg = [Throughput_avg; mean(Throughput)];
-
-    %Throughput5 = B5 * log2(1 + K5); % Rumus Shannon Capacity Formula
-    %Throughput6 = B6 * log2(1 + K6);
-    %Throughput_avg5 = [Throughput_avg5; mean(Throughput5)];
-    %Throughput_avg6 = [Throughput_avg6; mean(Throughput6)];
 
     % Memisahkan data berdasarkan jenis kendaraan
     idx_mobil = idx & strcmp(p, 'mobil');
@@ -158,7 +128,7 @@ for i = 1:length(Data_t)
     plot(x(idx_mobil), y(idx_mobil), 'o', 'MarkerFaceColor', 'Green');
     hold on;
 
-% Plot titik koordinat taksi dengan warna merah
+    % Plot titik koordinat taksi dengan warna merah
     plot(x(idx_taxi), y(idx_taxi), 'o', 'MarkerFaceColor', 'Red');
     hold on;
 
@@ -201,34 +171,51 @@ for i = 1:length(Data_t)
         end
 
         % Menambahkan kondisi "reachable" atau "unreachable"
-        kondisi = cell(size(data, 1), 1); % 
+        kondisi = cell(size(data, 1), 1);
         for k = 1:size(data, 1)
-            if x(k) <= 300 
-                 kondisi{k} = 'reachable';
-            elseif y(k) <= 300 
-                 kondisi{k} = 'unreachable';
-            %else
-                 %kondisi{k} = '';
+            if x(k) <= 255
+                kondisi{k} = 'reachable';
+            elseif y(k) <= 255
+                kondisi{k} = 'unreachable';
+            end
+            
+            % Tambahkan kondisi untuk mengubah menjadi 'unreachable' jika reachableDuration mencapai atau melebihi 20
+            if k > 255 && strcmp(kondisi{k}, 'reachable')
+                kondisi{k} = 'unreachable';
             end
         end
-
+        
         % Menghitung TraceCount Reachable/Second
         traceCount = zeros(size(xy_array, 1), 1);
         reachableDuration = zeros(size(xy_array, 1), 1);
+        reached = false;
         
-        for k = 1:size(xy_array, 1) % ubah data x, y
+        for k = 1:size(xy_array, 1)
             if k == 1
                 if strcmp(kondisi{k}, 'reachable')
                     reachableDuration(k) = 1;
+                    reached = true;
                 else
                     reachableDuration(k) = 0;
                 end
             else
                 if strcmp(kondisi{k}, 'reachable')
-                    reachableDuration(k) = reachableDuration(k-1) + 1;
+                    if reached
+                        reachableDuration(k) = reachableDuration(k - 1) + 1;
+                    else
+                        reached = true;
+                        % Tetapkan reachableDuration(k) ke nilai sebelumnya + 1, atau minimal 1
+                        reachableDuration(k) = max(reachableDuration(k - 1) + 1, 1);
+                    end
                 else
-                    reachableDuration(k) = reachableDuration(k-1) - 1;
-                end
+                    reached = false;
+                    % Tetapkan reachableDuration(k) ke nilai sebelumnya, atau minimal 0
+                    reachableDuration(k) = max(reachableDuration(k - 1), 0);
+                    % Tambahkan kondisi untuk mengatur reachableDuration menjadi 0 jika data > 20
+                    if k > 255 && strcmp(kondisi{k}, 'unreachable') %x(k) > 255 && y(k) > 255
+                        reachableDuration(k) = 0;
+                    end
+                end 
             end
             traceCount(k) = k;
         end
@@ -258,7 +245,7 @@ for i = 1:length(Data_t)
 
 
 % Plot untuk Duration
-    subplot(4, 1, 2);
+    subplot(5, 1, 2);
     plot(traceCount(start1:i),reachableDuration(start1:i), '-', 'Color', 'red');
     hold on;
     legend('mobil&taxi', 'Location', 'northwest');
@@ -266,7 +253,7 @@ for i = 1:length(Data_t)
     
     
     
-    subplot(4, 1, 3);
+    subplot(5, 1, 3);
     cla;
     
     % Plot titik koordinat RSU 
@@ -397,7 +384,7 @@ for i = 1:length(Data_t)
 
 
     % Plot untuk Reachable dan Unreachable
-    subplot(4, 1, 4);
+    subplot(5, 1, 4);
     cla;
 %     plot(x(idx_mobil), y(idx_mobil), 'o', 'MarkerFaceColor', 'Green');
 %     hold on;
@@ -408,17 +395,16 @@ for i = 1:length(Data_t)
     plot(rsu_x, rsu_y, 'o', 'MarkerFaceColor', 'cyan');
     hold on;
 
+    reachable_centroid = scatter3(nan, nan, nan, 200, 'green', 'X', 'LineWidth', 2);
+    unreachable_centroid = scatter3(nan, nan, nan, 200, 'red', 'X', 'LineWidth', 2);
 
     % Menambahkan centroid cluster dengan tanda X dan warna berdasarkan kondisi
     for cluster = 1:k
         for cluster1 = 1:k
-            % Pastikan cluster tidak melebihi jumlah centroid yang ditemukan
             for cluster2 = 1:k
-                % Check if both clusters belong to the same cluster
                 if cluster1 == cluster2
                     cluster_points1 = C(cluster1, :);
                     cluster_points2 = C(cluster2, :);
-                    % Connect the two head clusters with a line
                     if cluster1 ~= cluster2
                         line([cluster_points1(1), cluster_points2(1)], ...
                              [cluster_points1(2), cluster_points2(2)], ...
@@ -435,15 +421,17 @@ for i = 1:length(Data_t)
             % Menghitung jarak antara centroid dengan RSU
             distance_to_rsu = sqrt((centroid_x - rsu_x)^2 + (centroid_y - rsu_y)^2);
     
-            % Memilih warna berdasarkan jarak
+           % Plot centroid cluster dengan tanda X dan warna yang sesuai
             if distance_to_rsu <= 30
-                centroid_color = 'green'; % Warna hijau untuk jarak <= 30 meter
+                scatter3(centroid_x, centroid_y, centroid_z, 200, 'green', 'X', 'LineWidth', 2);
+                hold on;
             else
-                centroid_color = 'red'; % Warna merah untuk jarak > 30 meter
+                scatter3(centroid_x, centroid_y, centroid_z, 200, 'red', 'X', 'LineWidth', 2);
+                hold on;
             end
     
             % Plot centroid cluster dengan tanda X dan warna yang sesuai
-            scatter3(centroid_x, centroid_y, centroid_z, 200, centroid_color, 'X', 'LineWidth', 2);
+            %scatter3(centroid_x, centroid_y, centroid_z, 200, centroid_color, 'X', 'LineWidth', 2);
             hold on;
         else
             % Handle jika indeks melebihi jumlah centroid yang ditemukan
@@ -471,29 +459,70 @@ for i = 1:length(Data_t)
         distance_to_rsu = sqrt((x - rsu_x).^2 + (y - rsu_y).^2);
         data.Distance_to_RSU = distance_to_rsu;
 
-%         % Menggambar garis yang menghubungkan titik dengan RSU
-%         for k = 1:length(x_l(idx_rsu))
-%             line1 = plot([x_l(idx_rsu(k)), rsu_x], [y_l(idx_rsu(k)), rsu_y], '--', 'Color', 'cyan');
-%         end
-        
-%         % Memberikan warna pada mobil & taxi ketika jarak >= 300
-%         for k = 1:size(x_l)
-%             Xi = x_l(k);
-%             Yi = y_l(k);
-%             id_i = id_l(k); % Id kendaraan
-%             type_i = type_l{k}; % Type kendaraan
-%             if Xi <= 300 && sqrt((Xi - rsu_x).^2 + (Yi - rsu_y).^2) <= 30
-%                 node_color = 'Green';
-%             elseif Yi <= 300 
-%                 node_color = 'Red';
-%             end
-            %plot(Xi, Yi, 'o', 'MarkerFaceColor', node_color);
-            %text(Xi, Yi, [' ' id_i ,  type_i], 'Color', 'black', 'FontSize', 8);
-            %text(Xi, Yi, [type_i], 'Color', 'black', 'FontSize', 8);
-%         end
+
     end
-    legend('RSU', 'Centroids', 'Location', 'northwest');
-    %legend('mobil','taxi', 'RSU', 'Location', 'northwest');
+    legend('RSU', 'Centroid Reachable', 'Centroid Unreachable', 'Location', 'northwest');
+
+    % Plot untuk balckhole
+    subplot(5, 1, 5);
+    cla;
+    plot(x(idx_mobil), y(idx_mobil), 'o', 'MarkerFaceColor', 'Green');
+    hold on;
+    plot(x(idx_taxi), y(idx_taxi), 'o', 'MarkerFaceColor', 'Red');
+    hold on;
+    text(rsu_x, rsu_y, 'RSU', 'HorizontalAlignment', 'left')
+    hold on;
+    plot(rsu_x, rsu_y, 'o', 'MarkerFaceColor', 'cyan');
+    hold on;
+
+    % Plot titik koordinat RSU 
+    rsu_x = 119.797421731123;
+    rsu_y = 50.2803738317757;
+    text(rsu_x, rsu_y, 'RSU', 'HorizontalAlignment', 'left')
+    plot(rsu_x, rsu_y, 'o', 'MarkerFaceColor', 'cyan');
+    hold on;
+
+    % Menghubungkan dua titik koordinat dengan garis berdasarkan nilai unik pada Data_l
+    for j = 1:length(Data_l)
+        idx_l = idx & strcmp(l, Data_l(j));
+        x_l = x(idx_l);
+        y_l = y(idx_l);
+
+        % Menggambar garis yang menghubungkan titik terdekat
+        for k = 1:length(x_l)-1
+            % Menghitung jarak antara dua titik
+            distance2 = sqrt((x_l(k+1) - x_l(k))^2 + (y_l(k+1) - y_l(k))^2);
+
+            % Memilih warna berdasarkan jarak
+            if distance2 <= 30
+                line_color = 'green'; % Warna hijau untuk jarak <= 30 meter
+            elseif distance2 <= 50
+                line_color = 'red'; % Warna merah untuk jarak <= 50 meter
+            end
+
+            % Menggambar garis dengan warna yang sesuai
+            line1 = plot([x_l(k), x_l(k+1)], [y_l(k), y_l(k+1)], '--', 'Color', line_color);
+        end
+
+        % Menghitung jarak antara titik dengan RSU
+        distance_to_rsu = sqrt((x_l - rsu_x).^2 + (y_l - rsu_y).^2);
+        idx_rsu = distance_to_rsu <= 30;
+
+        % Menggambar garis yang menghubungkan titik dengan RSU
+        for k = 1:length(x_l(idx_rsu))
+            line1 = plot([x_l(idx_rsu(k)), rsu_x], [y_l(idx_rsu(k)), rsu_y], '--', 'Color', 'cyan');
+        end
+        node_numbers = 1:length(x);
+        for k = 1:length(x)
+            x_node = x(k);
+            y_node = y(k);
+            text(x_node, y_node, num2str(node_numbers(k)), 'HorizontalAlignment', 'left', 'VerticalAlignment', 'middle');
+        end
+    end
+    legend('mobil','taxi', 'RSU', 'Location', 'northwest');
+
+    
+
 
         
     pause(0.45);
@@ -508,8 +537,7 @@ for i = 1:length(Data_t)
 
 
     % Write the updated table back to Excel
-   %writetable(data, filename, 'Sheet', sheet, 'WriteVariableNames', true);
+    %writetable(data, filename, 'Sheet', sheet, 'WriteVariableNames', true);
 end
 
 hold off;
-    
