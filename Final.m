@@ -9,6 +9,7 @@ l = data.lane;
 p = data.type;
 speed = data.speed;
 a = data.angle;
+d = data.id;
 
 f_5G = 5.9; % Standar VANET 802.11p (Ghz)
 f_6G = 6; % Perkiraan frekuensi yang digunakan pada 6G
@@ -251,9 +252,7 @@ for i = 1:length(Data_t)
     end
     hold on;
     legend('mobil&taxi', 'Location', 'northwest');
-    hold on;
-    legend('mobil&taxi', 'Location', 'northwest');
-   
+    hold on;   
     
     
     
@@ -536,16 +535,16 @@ for i = 1:length(Data_t)
     end
     legend('mobil','taxi', 'RSU', 'Location', 'northwest');
 
-    xi = x;
-    yi = y;
-
+    id = d;
+    
     % Menghitung s1
-    s1 = [xi(1), yi(1)];
+    s1 = {x_l, y_l, id};
     
     % Menghitung min_d1
-    min_d1 = zeros(size(xi));  % Inisialisasi array min_d1
-    for i = 2:numel(xi)  % Mulai dari 2 karena kita menghitung dari elemen kedua
-        min_d1(i) = sqrt((xi(i) - xi(i-1))^2 + (yi(i) - yi(i-1))^2);
+    min_d1 = zeros(size(x_l)); % Inisialisasi array min_d1
+    
+    for i = 2:numel(x_l)
+        min_d1(i) = sqrt((x_l(i) - x_l(i-1))^2 + (y_l(i) - y_l(i-1))^2);
     end
     
     % Matriks xy_array
