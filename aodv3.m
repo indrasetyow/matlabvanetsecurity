@@ -3,67 +3,77 @@ x = 1:20;
 s1 = x(1);
 d1 = x(20);
 clc;
-A = randi([0, 1], 20);  % Assuming a binary adjacency matrix (0 or 1)
-A = triu(A) + triu(A, 1).';  % Make the matrix symmetric
-A(logical(eye(20))) = 0;  % Set diagonal elements to zero
+A = randi([0, 1], 20); % Generate a 20x20 matrix of random integers 0 or 1
 
-disp('Adjacency Matrix:');
+% Making matrix all diagonals=0 and A(i,j)=A(j,i), i.e. A(1,4)=a(4,1),
+% A(6,7)=A(7,6)
+for i = 1:20
+    for j = 1:20
+        if i == j
+            A(i, j) = 0;
+        else
+            A(j, i) = A(i, j);
+        end
+    end
+end
 disp(A);
-
 t = 1:20;
-disp('Nodes:');
 disp(t);
 
+disp(A);
 status(1) = '!';
-dist(2:20) = Inf;
-next(1:20) = 0;
+% dist(1)=0;
+dist(2) = 0;
+next(1) = 0;
 
 for i = 2:20
     status(i) = '?';
     dist(i) = A(i, 1);
     next(i) = 1;
-    disp(['i == ' num2str(i) ' A(i, 1)=' num2str(A(i, 1)) ' status:=' status(i) ' dist(i)=' num2str(dist(i))]);
+    disp(['i== ' num2str(i) ' A(i,1)=' num2str(A(i, 1)) ' status:=' status(i) ' dist(i)=' num2str(dist(i))]);
 end
 
 flag = 0;
 for i = 2:20
     if A(1, i) == 1
-        disp(['Node 1 sends RREQ to node ' num2str(i)])
+        disp([' node 1 sends RREQ to node ' num2str(i)])
         if i == 20 && A(1, i) == 1
             flag = 1;
         end
     end
 end
 disp(['Flag= ' num2str(flag)]);
+seq_num = 1;  % Initialize sequence number
 
-while true
+while (1)
+
     if flag == 1
         break;
     end
-    
+
     temp = 0;
     for i = 1:20
         if status(i) == '?'
-            minDist = dist(i);
+            min = dist(i);
             vert = i;
             break;
         end
     end
-    
+
     for i = 1:20
-        if minDist > dist(i) && status(i) == '?'
-            minDist = dist(i);
+        if min > dist(i) && status(i) == '?'
+            min = dist(i);
             vert = i;
         end
     end
     status(vert) = '!';
-    
+
     for i = 1:20
-        if status(i) == '!'
+        if status() == '!'
             temp = temp + 1;
         end
     end
-    
+
     if temp == 20
         break;
     end
@@ -74,14 +84,18 @@ count = 1;
 route(count) = 20;
 
 while next(i) ~= 1
-    disp(['Node ' num2str(i) ' sends RREP message to node ' num2str(next(i))])
+    disp([' Node ' num2str(i) ' sends RREP message with sequence number ' num2str(seq_num) ' to node ' num2str(next(i))])
     i = next(i);
+    % disp(i);
     count = count + 1;
     route(count) = i;
+    route(count) = i;
+    seq_num = seq_num + 1;  % Increment sequence number
 end
 
-disp(['Node ' num2str(i) ' sends RREP to node 1'])
-disp('Node 1')
+disp([' Node ' num2str(i) ' sends RREP with sequence number ' num2str(seq_num) ' to node 1'])
+disp(' Node 1 ')
 for i = count:-1:1
-    disp(['Sends message to node ' num2str(route(i))])
+    disp([' Sends message with sequence number ' num2str(seq_num) ' to node ' num2str(route(i))])
+    seq_num = seq_num + 1;  % Increment sequence number
 end

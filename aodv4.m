@@ -64,6 +64,9 @@ while t + 1 <= maxIterations
     result.id{t} = data.id{t};
     result.x(t) = data.x(t);
     result.y(t) = data.y(t);
+    result.RREPSN = zeros(height(result), 1);
+
+    
 
     % Menyimpan jarak antar titik ke dalam matriks
     jarakAntarTitik(t-1, t) = d;
@@ -84,7 +87,34 @@ result.sequence = strcat(string(result.id), '_', string(result.t));
 
 % Inisialisasi struktur untuk menyimpan jumlah kemunculan setiap ID pada setiap iterasi
 id_counts = containers.Map('KeyType', 'char', 'ValueType', 'double');
-
+id_count = containers.Map('KeyType', 'char', 'ValueType', 'double');
+for t = 1:max(result.t)
+    % Mendapatkan ID yang muncul pada iterasi saat ini
+    ids_current = unique(result.id(result.t == t));
+    
+    % Loop melalui setiap ID yang muncul pada iterasi saat ini
+    for id_idx = 1:numel(ids_current)
+        id = ids_current{id_idx};
+        % Jika ID tidak ada dalam struktur id_count, tambahkan dan atur nilai awalnya menjadi 0
+        if ~isKey(id_count, id)
+            id_count(id) = 0;
+        end
+        % Mendapatkan jumlah kemunculan ID pada iterasi sebelumnya
+        count_prev = id_count(id);
+        
+        % Mendapatkan indeks ID pada iterasi saat ini
+        idx_current = find(strcmp(result.id, id) & result.t == t);
+        
+        % Memperbarui sequence untuk ID pada iterasi saat ini dengan indeks unik yang tepat
+        for i = 1:numel(idx_current)
+            % Mengubah tipe data SSN menjadi integer dan memulai pengurutan dari time 1
+            result.SSN(idx_current(i)) = count_prev + i;
+        end
+        
+        % Mengupdate jumlah kemunculan ID
+        id_count(id) = count_prev + numel(idx_current);
+    end
+end
 % Membuat loop untuk mengecek setiap nilai t
 for t = 1:max(result.t)
     % Mendapatkan ID yang muncul pada iterasi saat ini
@@ -257,7 +287,7 @@ for t = 1:20
 %     text(resultTableTime.x, resultTableTime.y, cellfun(@num2str, resultTableTime.color, 'UniformOutput', false), 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'right');
 
     % Menunggu sebentar agar perubahan posisi terlihat
-    pause(1.0);
+    pause(0.1);
     
     hold off;
 end
@@ -265,8 +295,17 @@ end
 
 
     % Inisialisasi variabel
-numNodes = 500;
+numNodes = height(unique(result));
 validDValues = zeros(numNodes, numNodes);
+
+% Tentukan jumlah baris yang ingin digunakan
+jumlah_baris = 400; % misalnya 120 baris
+
+% Ambil sejumlah baris tertentu dari tabel result
+data_terbatas = result(1:jumlah_baris, :);
+
+% Mengambil jumlah unik dari kolom 'id' dalam tabel 'data_terbatas' untuk mendapatkan jumlah node
+numNodes = numel(unique(data_terbatas.sequence));
 
 for i = 1:numNodes
     for j = 1:numNodes
@@ -275,117 +314,130 @@ for i = 1:numNodes
     end
 end
 
-% Inisialisasi AODV
-status = '!';
-dist = inf(1, numNodes);
-next = zeros(1, numNodes);
+% Inisialisasi variabel untuk menyimpan rute
+routes = cell(numNodes, 1);
 
-% Inisialisasi status, dist, dan next
-for i = 1:numNodes
-    if i == 1
-        status(i) = '!';
-        dist(i) = 0;
-        next(i) = 0;
-    else
-        status(i) = '?';
-        % Gunakan hasil perhitungan jarak dari tabel result
-        dist(i) = result.d(i);
-        next(i) = 1;
-    end
-end
+for goalNode = 1:numNodes
+    % Inisialisasi AODV
+    status = '!';
+    dist = inf(1, numNodes);
+    next = zeros(1, numNodes);
 
-% Inisialisasi variabel lainnya
-flag = 0;
-temp = 0;
-
-% Set goalNode
-goalNode = 1; % Sesuaikan dengan node tujuan
-
-% Initialize variables to store ping information
-pingResults = cell(numNodes, numNodes);
-
-while flag ~= 1 && temp < numNodes
-    temp = temp + 1; % Tambahkan iterasi
-
-    % Pilih node dengan dist terkecil dan status '?'
-    [minDist, vert] = min(dist(status == '?'));
-
-    % Perbarui status
-    status(vert) = '!';
-
-    % Perbarui dist dan next untuk node tetangga
+    % Inisialisasi status, dist, dan next
     for i = 1:numNodes
-        if status(i) == '?' && dist(i) > dist(vert) + validDValues(vert, i)
-            dist(i) = dist(vert) + validDValues(vert, i);
-            next(i) = vert;
+        if i == goalNode
+            status(i) = '!';
+            dist(i) = 0;
+            next(i) = 0;
+        else
+            status(i) = '?';
+            % Gunakan hasil perhitungan jarak dari tabel result
+            dist(i) = result.d(i);
+            next(i) = 1;
+        end
+    end
 
-            % Log RREQ
-            disp(['Node ' num2str(vert) ' sends RREQ message to node ' num2str(i)]);
+    % Initialize variables lainnya
+    flag = 0;
+    temp = 0;
 
-            % Simulate reply or timeout based on distance
-            if validDValues(vert, i) < 300
-                pingResults{vert, i} = 'Ping: Reply 100%';
-            else
-                pingResults{vert, i} = 'Timeout';
+    % Initialize variables to store ping information
+    pingResults = cell(numNodes, 1);
+    rrepsn = ones(1, numNodes);
+    tableSSN = [];
+
+    while flag ~= 1 && temp < numNodes
+        temp = temp + 1; % Tambahkan iterasi
+
+        % Pilih node dengan dist terkecil dan status '?'
+        [minDist, vert] = min(dist(status == '?'));
+
+        % Perbarui status
+        status(vert) = '!';
+
+        % Perbarui dist dan next untuk node tetangga
+        for i = 1:numNodes
+            if status(i) == '?' && dist(i) > dist(vert) + validDValues(vert, i)
+                dist(i) = dist(vert) + validDValues(vert, i);
+                next(i) = vert;
+
+                % Log RREQ
+                disp(['Node ' num2str(vert) ' sends RREQ message to node ' num2str(i)]);
+
+                % Simulate reply or timeout based on distance
+                if validDValues(vert, i) < 300
+                    pingResults{i} = 'Ping: Reply 100%';
+                else
+                    pingResults{i} = 'Timeout';
+                    % Tambahkan kondisi untuk keluar dari loop jika goalNode tercapai
+                    if i == goalNode
+                        flag = 1;
+                        break; % Exit the loop when the condition is met
+                    end
+                end
+
+                rrepsn(vert) = rrepsn(vert) + 1;
+                disp(['Node ' num2str(i) ' sends RREP message (RREPSN=' num2str(rrepsn(vert)) ') to node ' num2str(vert)]);
+
+                % Tambahkan nomor urutan RREP ke dalam tableSSN
+                tableSSN = [tableSSN; rrepsn(vert)];
+
+                result.RREPSN(1:length(tableSSN)) = tableSSN;
+
                 % Tambahkan kondisi untuk keluar dari loop jika goalNode tercapai
                 if i == goalNode
                     flag = 1;
-                    break;
+                    break; % Exit the loop when the condition is met
                 end
+                % Perbarui RREPSN di pingResults
+                pingResults{i} = ['Ping: Reply 100%, RREPSN=' num2str(rrepsn(vert))];
             end
+        end
 
-            % Log RREP
-            disp(['Node ' num2str(i) ' sends RREP message to node ' num2str(vert)]);
-
-            % Tambahkan kondisi untuk keluar dari loop jika goalNode tercapai
-            if i == goalNode
-                flag = 1;
-                break;
-            end
+        if all(status == '!')
+            flag = 1;
+            break; % Exit the loop when the condition is met
         end
     end
 
-    if all(status == '!')
-        flag = 1;
-        break;
-    end
-
-    % pause(2.0);  % Add a pause to slow down the animation
-end
-
-% Display ping results
-disp('Ping Results:');
-for i = 1:numNodes
-    for j = 1:numNodes
-        if ~isempty(pingResults{i, j})
-            disp(['Node ' num2str(i) ' to Node ' num2str(j) ': ' pingResults{i, j}]);
+    % Display ping results for the current goalNode
+    disp(['Ping Results for Node ' num2str(goalNode) ':']);
+    for i = 1:numNodes
+        if ~isempty(pingResults{i})
+            disp(['Node ' num2str(i) ': ' pingResults{i}]);
         end
     end
-end
 
-% Check for nodes that initiated RREQ but did not receive RREP (Timeout)
-disp('Timeout Results:');
-for i = 1:numNodes
-    initiatedRREQ = find(~cellfun('isempty', pingResults(i, :)));
-    receivedRREP = find(cellfun(@(x) strcmp(x, 'Ping: Reply 100%'), pingResults(i, :)));
+    % Save the route for the current goalNode
+    i = goalNode;
+    count = 1;
+    routes{goalNode} = [i];
     
-    if isempty(receivedRREP)
-        % Node initiated RREQ but did not receive RREP (Timeout)
-        disp(['Node ' num2str(i) ' tidak RREP Ping : Timeout']);
+    % Bangun rute dari node terakhir ke node pertama
+    while next(i) ~= 0 % Ganti dengan node awal
+        count = count + 1;
+        routes{goalNode} = [routes{goalNode}, next(i)];
+        i = next(i);
     end
 end
 
-% Inisialisasi variabel untuk menyimpan rute
-i = goalNode; % Ganti dengan goalNode
-count = 1;
-route(count) = goalNode;
-
-% Bangun rute dari node terakhir ke node pertama
-while next(i) ~= 0 % Ganti dengan node awal
-    count = count + 1;
-    route(count) = next(i);
-    i = next(i);
+% Display all routes
+disp('All Routes:');
+for goalNode = 1:numNodes
+    disp(['Route for Node ' num2str(goalNode) ': ' num2str(routes{goalNode})]);
 end
+
+result.Difference = result.RREPSN - result.SSN;
+% Set the threshold for disconnect status
+threshold_lower = -50;
+threshold_upper = 50;
+
+% Initialize the 'Status' column as 'Connected'
+result.Status = repmat({'Connected'}, height(result), 1);
+
+% Update 'Status' to 'Disconnected' if the difference is beyond the thresholds
+result.Status(result.Difference < threshold_lower | result.Difference > threshold_upper) = {'Disconnected'};
+
 
 % Tampilkan hasil rute
 disp('AODV Route:');
