@@ -38,22 +38,22 @@ ylabel('Data y');
 grid on;
 hold on;
 
-% subplot(7, 1, 2);
-% axis([10 inf 18.671 inf]);
-% title('Analisis Perbandingan 5G & 6G');
-% xlabel('Jumlah kendaraan');
-% ylabel('decibel (dB)');
-% grid on;
-% hold on;
-% 
-% subplot(7, 1, 3); % Subplot untuk menghitung delay
-% %axis('auto');
-% axis([10 inf 155.283 inf]);
-% title('Delay Berdasarkan Jarak');
-% xlabel('Jumlah Kendaraan');
-% ylabel('Delay (ms)');
-% grid on;
-% hold on;
+subplot(7, 1, 2);
+axis([10 inf 18.671 inf]);
+title('Analisis Perbandingan 5G & 6G');
+xlabel('Jumlah kendaraan');
+ylabel('decibel (dB)');
+grid on;
+hold on;
+
+subplot(7, 1, 3); % Subplot untuk menghitung delay
+%axis('auto');
+axis([10 inf 155.283 inf]);
+title('Delay Berdasarkan Jarak');
+xlabel('Jumlah Kendaraan');
+ylabel('Delay (ms)');
+grid on;
+hold on;
 % 
 % subplot(5, 1, 2); % Subplot untuk menghitung throughput
 % %axis([10 inf 434 134]);

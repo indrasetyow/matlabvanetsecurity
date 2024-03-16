@@ -121,7 +121,7 @@ for t = 1:max(result.t)
         % Memperbarui sequence untuk ID pada iterasi saat ini dengan indeks unik yang tepat
         for i = 1:numel(idx_current)
             % Mengubah tipe data SSN menjadi integer dan memulai pengurutan dari time 1
-            result.SSN(idx_current(i)) = count_prev + i;
+            resultserangan.SSN(idx_current(i)) = count_prev + i;
         end
         
         % Mengupdate jumlah kemunculan ID
@@ -358,8 +358,8 @@ temp = 0;
 goalNode = 20; % Sesuaikan dengan node tujuan
 
 % Initialize variables to store ping information
-pingResults = cell(numNodes, numNodes);
-rrepsn = zeros(max(result.t), numel(unique(result.id)));
+pingResults = cell(numNodes);
+rrepsn = zeros(max(numNodes));
 tableSSN = [];
 
 % Main loop
@@ -418,7 +418,6 @@ while flag ~= 1 && temp < numNodes
         break;
     end
 end
-
 % Display ping results
 disp('Ping Results:');
 for i = 1:numNodes
@@ -477,16 +476,16 @@ for i = 1:numNodes
     end
 end
 
-result.Difference = result.RREPSN - result.SSN;
-% Set the threshold for disconnect status
-threshold_lower = -50;
-threshold_upper = 50;
-
-% Initialize the 'Status' column as 'Connected'
-result.Status = repmat({'Connected'}, height(result), 1);
-
-% Update 'Status' to 'Disconnected' if the difference is beyond the thresholds
-result.Status(result.Difference < threshold_lower | result.Difference > threshold_upper) = {'Disconnected'};
+% result.Difference = result.RREPSN - result.SSN;
+% % Set the threshold for disconnect status
+% threshold_lower = -50;
+% threshold_upper = 50;
+% 
+% % Initialize the 'Status' column as 'Connected'
+% result.Status = repmat({'Connected'}, height(result), 1);
+% 
+% % Update 'Status' to 'Disconnected' if the difference is beyond the thresholds
+% result.Status(result.Difference < threshold_lower | result.Difference > threshold_upper) = {'Disconnected'};
 
 % Inisialisasi variabel baru untuk warna pada result
 result.color = cell(height(result), 1);
