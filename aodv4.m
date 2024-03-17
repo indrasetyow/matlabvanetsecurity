@@ -45,10 +45,6 @@ maxIterations = height(data);
 result = table('Size', [80, 5], ...
     'VariableTypes', {'double', 'double', 'string', 'double', 'double'}, ...
     'VariableNames', {'t', 'd', 'id', 'x', 'y'});
-% Inisialisasi tabel untuk menyimpan hasil
-resultserangan = table('Size', [80, 5], ...
-    'VariableTypes', {'double', 'double', 'string', 'double', 'double'}, ...
-    'VariableNames', {'t', 'd', 'id', 'x', 'y'});
 
 % Inisialisasi matriks untuk menyimpan jarak antar titik
 jarakAntarTitik = zeros(maxIterations, maxIterations);
@@ -71,13 +67,7 @@ while t + 1 <= maxIterations
     result.RREPSN = zeros(height(result), 1);
     result(result.t == 0, :) = [];
 
-    % Menyimpan nilai t, d, id, x, dan y ke dalam result
-    resultserangan.t(t) = data.time(t);
-    resultserangan.d(t) = d;
-    resultserangan.id{t} = data.id{t};
-    resultserangan.x(t) = data.x(t);
-    resultserangan.y(t) = data.y(t);
-    resultserangan(resultserangan.t == 0, :) = [];
+    
     % Menyimpan jarak antar titik ke dalam matriks
     jarakAntarTitik(t-1, t) = d;
     jarakAntarTitik(t, t-1) = d;
@@ -128,90 +118,6 @@ for t = 1:max(result.t)
         id_count(id) = count_prev + numel(idx_current);
     end
 end
-
-
-
-
-
-% Inisialisasi variabel baru untuk menyimpan data
-groupserangan = table('Size', [100, 1], ...
-    'VariableTypes', {'cell'}, ...
-    'VariableNames', {'Resultserangan'});
-% Iterasi untuk t = 1 hingga 100
-for t = 1:50
-    % Mengambil data dengan nilai 't' sesuai iterasi
-    resultTimeserangan = resultserangan(resultserangan.t == t, :);
-
-    % Perhitungan nilai d
-    if t > 1
-        d = sqrt((data.x(t) - data.x(t-1)).^2 + (data.y(t) - data.y(t-1)).^2);
-    else
-        d = 0; 
-    end
-    
-    % Jika data tidak mencapai 80 baris, tambahkan baris dengan nilai 0
-    if size(resultTimeserangan, 1) < 80
-        rowsTotal = 80 - size(resultTimeserangan, 1);
-        rowsZero = array2table(zeros(rowsTotal, width(resultTimeserangan)), 'VariableNames', resultTimeserangan.Properties.VariableNames);
-        resultTimeserangan = [resultTimeserangan; rowsZero];
-    end
-
-    % Simpan resultTime ke dalam group
-    groupserangan.Resultserangan{t} = resultTimeserangan;
-
-    % Hapus variabel yang tidak ingin ditampilkan di workspace
-    clear nonZeroDIdx rowsTotal rowsZero;
-end
-
-% Iterasi untuk t = 1 hingga 100
-for t = 1:50
-    % Mengambil tabel dari dalam cell array
-    resultTableTimeserangan = groupserangan.Resultserangan{t};
-
-    % Menambahkan kolom warna ke dalam tabel hanya jika d > 0
-     resultTableTimeserangan.color = cell(height(resultTableTimeserangan), 1);
-
-    % Temukan indeks baris dengan nilai d terkecil dan terbesar
-    minD = find(resultTableTimeserangan.d == min(resultTableTimeserangan.d(resultTableTimeserangan.d > 0)), 1, 'first');
-    maxD = find(resultTableTimeserangan.d >= 300);
-
-    % Berikan warna hijau untuk nilai d terkecil jika d > 0
-    if ~isempty(minD)
-        resultTableTimeserangan.color{minD} = 'green';
-    end
-    
-%     % Berikan warna merah untuk nilai d terbesar jika d > 0
-%     if ~isempty(maxD)
-%         resultTableTime.color(maxD)= {'red'};
-%     end
-    
-    % Isi nilai biru hanya untuk baris dengan nilai d sama dengan 0
-    zeroDIdx = find(resultTableTimeserangan.d == 0);
-    
-    % Hapus node biru dengan nilai d = 0 dari hasil plot
-    resultTableTimeserangan(zeroDIdx, :) = [];
-    
-    % Isi nilai biru untuk baris dengan nilai d tidak sama dengan 0 dan tidak memiliki warna
-    nonZeroDIdx = find(resultTableTimeserangan.d > 0 & cellfun('isempty', resultTableTimeserangan.color));
-    resultTableTimeserangan.color(nonZeroDIdx) = {'blue'};
-
-    % Menyimpan indeks baris dengan nilai d terkecil sebagai Head Cluster (warna hijau)
-    headClusterIdx = find(strcmp(resultTableTimeserangan.color, 'green'));
-    if ~isempty(headClusterIdx)
-        resultTableTimeserangan.color{headClusterIdx} = 'Head Cluster';
-    end
-
-    % Menyimpan tabel yang telah dimodifikasi ke dalam cell array
-    groupserangan.Resultserangan{t} = resultTableTimeserangan;
-
-    % Hapus variabel yang tidak ingin ditampilkan di workspace
-    clear nonZeroDIdx zeroDIdx;
-    clear headClusterIdx maxD minD;
-end
-
-
-
-
 % Inisialisasi variabel
 numNodes = height(unique(result));
 validDValues = zeros(numNodes, numNodes);
