@@ -328,7 +328,7 @@ end
 % end
 
 % Check for nodes that initiated RREQ but did not receive RREP (Timeout)
-disp('Timeout Results:');
+% disp('Timeout Results:');
 for i = 1:numNodes
     initiatedRREQ = find(~cellfun('isempty', pingResults(i, :)));
     
@@ -347,10 +347,10 @@ for i = 1:numNodes
     end
     
     % Check if there are nodes that initiated RREQ but did not receive RREP
-    if isempty(receivedRREP)
-        % Node initiated RREQ but did not receive RREP (Timeout)
-        disp(['Node ' num2str(i) ' tidak RREP Ping : Timeout']);
-    end
+%     if isempty(receivedRREP)
+%         % Node initiated RREQ but did not receive RREP (Timeout)
+%         disp(['Node ' num2str(i) ' tidak RREP Ping : Timeout']);
+%     end
 end
 
 % Inisialisasi variabel untuk menyimpan rute
@@ -365,28 +365,28 @@ while next(i) ~= 0 % Ganti dengan node awal
     i = next(i);
 end
 
-% Tampilkan hasil ping
-disp('Hasil Ping:');
-for i = 1:numNodes
-    for j = 1:numNodes
-        if ~isempty(pingResults{i, j})
-            disp(['Node ' num2str(i) ' to Node ' num2str(j) ': ' pingResults{i, j}]);
-        end
-    end
-end
+% % Tampilkan hasil ping
+% disp('Hasil Ping:');
+% for i = 1:numNodes
+%     for j = 1:numNodes
+%         if ~isempty(pingResults{i, j})
+%             disp(['Node ' num2str(i) ' to Node ' num2str(j) ': ' pingResults{i, j}]);
+%         end
+%     end
+% end
 
 
 
 
 % Display connections for each node
-disp('Node Connections:');
-for i = 1:numNodes
-    if i == goalNode
-        disp(['Node ' num2str(i) ' is the goal node.']);
-    else
-        disp(['Node ' num2str(i) ' connects to: ' num2str(route(end:-1:1))]);
-    end
-end
+% disp('Node Connections:');
+% for i = 1:numNodes
+%     if i == goalNode
+%         disp(['Node ' num2str(i) ' is the goal node.']);
+%     else
+%         disp(['Node ' num2str(i) ' connects to: ' num2str(route(end:-1:1))]);
+%     end
+% end
 result.Difference = result.RREPSN - result.SSN;
 % Set the threshold for disconnect status
 threshold_lower = -15;
