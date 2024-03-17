@@ -68,7 +68,7 @@ while t + 1 <= maxIterations
     result.id{t} = data.id{t};
     result.x(t) = data.x(t);
     result.y(t) = data.y(t);
-%     result.RREPSN = zeros(height(result), 1);
+    result.RREPSN = zeros(height(result), 1);
     result(result.t == 0, :) = [];
 
     % Menyimpan nilai t, d, id, x, dan y ke dalam result
@@ -128,106 +128,7 @@ for t = 1:max(result.t)
         id_count(id) = count_prev + numel(idx_current);
     end
 end
-% Membuat loop untuk mengecek setiap nilai t
-for t = 1:max(result.t)
-    % Mendapatkan ID yang muncul pada iterasi saat ini
-    ids_current = unique(result.id(result.t == t));
-    
-    % Loop melalui setiap ID yang muncul pada iterasi saat ini
-    for id_idx = 1:numel(ids_current)
-        id = ids_current{id_idx};
-        % Jika ID tidak ada dalam struktur id_counts, tambahkan dan atur nilai awalnya menjadi 0
-        if ~isKey(id_counts, id)
-            id_counts(id) = 0;
-        end
-        % Mendapatkan jumlah kemunculan ID pada iterasi sebelumnya
-        count_prev = id_counts(id);
-        
-        % Mendapatkan indeks ID pada iterasi saat ini
-        idx_current = find(strcmp(result.id, id) & result.t == t);
-        
-        % Memperbarui sequence untuk ID pada iterasi saat ini dengan indeks unik yang tepat
-        for i = 1:numel(idx_current)
-            result.sequence{idx_current(i)} = [id, '_', num2str(count_prev + i)];
-        end
-        
-        % Mengupdate jumlah kemunculan ID
-        id_counts(id) = count_prev + numel(idx_current);
-    end
-end
 
-
-% Iterasi untuk t = 1 hingga 100
-for t = 1:100
-    % Mengambil data dengan nilai 't' sesuai iterasi
-    resultTime = result(result.t == t, :);
-
-    % Perhitungan nilai d
-    if t > 1
-        d = sqrt((data.x(t) - data.x(t-1)).^2 + (data.y(t) - data.y(t-1)).^2);
-    else
-        d = 0; 
-    end
-    
-    % Jika data tidak mencapai 80 baris, tambahkan baris dengan nilai 0
-    if size(resultTime, 1) < 80
-        rowsTotal = 80 - size(resultTime, 1);
-        rowsZero = array2table(zeros(rowsTotal, width(resultTime)), 'VariableNames', resultTime.Properties.VariableNames);
-        resultTime = [resultTime; rowsZero];
-    end
-
-    % Simpan resultTime ke dalam group
-    group.Result{t} = resultTime;
-
-    % Hapus variabel yang tidak ingin ditampilkan di workspace
-    clear nonZeroDIdx rowsTotal rowsZero;
-end
-
-% Iterasi untuk t = 1 hingga 100
-for t = 1:100
-    % Mengambil tabel dari dalam cell array
-    resultTableTime = group.Result{t};
-
-    % Menambahkan kolom warna ke dalam tabel hanya jika d > 0
-    resultTableTime.color = cell(height(resultTableTime), 1);
-
-    % Temukan indeks baris dengan nilai d terkecil dan terbesar
-    minD = find(resultTableTime.d == min(resultTableTime.d(resultTableTime.d > 0)), 1, 'first');
-    maxD = find(resultTableTime.d >= 300);
-
-    % Berikan warna hijau untuk nilai d terkecil jika d > 0
-    if ~isempty(minD)
-        resultTableTime.color{minD} = 'green';
-    end
-    
-%     % Berikan warna merah untuk nilai d terbesar jika d > 0
-%     if ~isempty(maxD)
-%         resultTableTime.color(maxD)= {'red'};
-%     end
-    
-    % Isi nilai biru hanya untuk baris dengan nilai d sama dengan 0
-    zeroDIdx = find(resultTableTime.d == 0);
-    
-    % Hapus node biru dengan nilai d = 0 dari hasil plot
-    resultTableTime(zeroDIdx, :) = [];
-    
-    % Isi nilai biru untuk baris dengan nilai d tidak sama dengan 0 dan tidak memiliki warna
-    nonZeroDIdx = find(resultTableTime.d > 0 & cellfun('isempty', resultTableTime.color));
-    resultTableTime.color(nonZeroDIdx) = {'blue'};
-
-    % Menyimpan indeks baris dengan nilai d terkecil sebagai Head Cluster (warna hijau)
-    headClusterIdx = find(strcmp(resultTableTime.color, 'green'));
-    if ~isempty(headClusterIdx)
-        resultTableTime.color{headClusterIdx} = 'Head Cluster';
-    end
-
-    % Menyimpan tabel yang telah dimodifikasi ke dalam cell array
-    group.Result{t} = resultTableTime;
-
-    % Hapus variabel yang tidak ingin ditampilkan di workspace
-    clear nonZeroDIdx zeroDIdx;
-    clear headClusterIdx maxD minD;
-end
 
 
 
@@ -237,7 +138,7 @@ groupserangan = table('Size', [100, 1], ...
     'VariableTypes', {'cell'}, ...
     'VariableNames', {'Resultserangan'});
 % Iterasi untuk t = 1 hingga 100
-for t = 1:100
+for t = 1:50
     % Mengambil data dengan nilai 't' sesuai iterasi
     resultTimeserangan = resultserangan(resultserangan.t == t, :);
 
@@ -263,7 +164,7 @@ for t = 1:100
 end
 
 % Iterasi untuk t = 1 hingga 100
-for t = 1:100
+for t = 1:50
     % Mengambil tabel dari dalam cell array
     resultTableTimeserangan = groupserangan.Resultserangan{t};
 
@@ -316,7 +217,7 @@ numNodes = height(unique(result));
 validDValues = zeros(numNodes, numNodes);
 
 % Tentukan jumlah baris yang ingin digunakan
-jumlah_baris = 400; % misalnya 120 baris
+jumlah_baris = 1497; 
 
 % Ambil sejumlah baris tertentu dari tabel result
 data_terbatas = result(1:jumlah_baris, :);
@@ -324,10 +225,11 @@ data_terbatas = result(1:jumlah_baris, :);
 % Mengambil jumlah unik dari kolom 'id' dalam tabel 'data_terbatas' untuk mendapatkan jumlah node
 numNodes = numel(unique(data_terbatas.sequence));
 
+% Menginisialisasi matriks validDValues dengan jarak antar node
 for i = 1:numNodes
     for j = 1:numNodes
         % Perhitungan jarak antar node i dan j
-        validDValues(i, j) = sqrt((result.x(i) - result.x(j))^2 + (result.y(i) - result.y(j))^2);
+        validDValues(i, j) = sqrt((data_terbatas.x(i) - data_terbatas.x(j))^2 + (data_terbatas.y(i) - data_terbatas.y(j))^2);
     end
 end
 
@@ -345,7 +247,7 @@ for i = 1:numNodes
     else
         status(i) = '?';
         % Gunakan hasil perhitungan jarak dari tabel result
-        dist(i) = result.d(i);
+        dist(i) = data_terbatas.d(i);
         next(i) = 1;
     end
 end
@@ -378,38 +280,34 @@ while flag ~= 1 && temp < numNodes
             dist(i) = dist(vert) + validDValues(vert, i);
             next(i) = vert;
 
-            % Log RREQ
-            disp(['Node ' num2str(vert) ' sends RREQ message to node ' num2str(i)]);
+            % Simulasi RREQ hanya jika tidak dalam keadaan Timeout
+            if validDValues(vert, i) 
+                % Log RREQ
+                disp(['Node ' num2str(vert) ' sends RREQ message to node ' num2str(i)]);
+                % Simulasikan penerimaan RREQ dan kirimkan RREP
+                % Jika node tujuan tercapai, set flag menjadi 1
+                % Update RREPSN values
+                rrepsn(i) = rrepsn(i) + 1; % Tingkatkan nilai rrepsn untuk node yang membalas
+                % Update tableSSN with RREPSN values
+                result.RREPSN(i) = rrepsn(i); % Update nilai RREPSN untuk node yang membalas
+                disp(['Node ' num2str(i) ' sends RREP message (RREPSN=' num2str(rrepsn(i)) ') to node ' num2str(vert)]);
 
-            % Simulate reply or timeout based on distance
-            pingResults{vert, i} = ['Ping: Reply 100%, t=' num2str(result.t(i))];
-
-            % Update RREPSN values
-            for t = 1:max(result.t)
-                if ~isempty(pingResults{t})
-                    for j = 1:numNodes
-                        if ~isempty(pingResults{t, j})
-                            rrepsn(j) = rrepsn(j) + 1;
-                        end
-                    end
+                if i == goalNode
+                    flag = 1;
+                    break;
                 end
+                
+                
+            else
+                % Jika mencapai Timeout, set hasil ping menjadi Timeout
+                pingResults{vert, i} = 'Timeout';
             end
-            rrepsn(vert) = rrepsn(vert) + 1;
-            disp(['Node ' num2str(i) ' sends RREP message (RREPSN=' num2str(rrepsn(vert)) ') to node ' num2str(vert)]);
-            
-            tableSSN = [tableSSN; rrepsn(vert)];
-
-            % Update tableSSN with RREPSN values
-            tableSSN = [tableSSN; rrepsn(vert)];
-            result.RREPSN(1:length(tableSSN)) = tableSSN;
 
             % Tambahkan kondisi untuk keluar dari loop jika goalNode tercapai
             if i == goalNode
                 flag = 1;
                 break;
             end
-            % Update RREPSN in pingResults
-            pingResults{vert, i} = ['Ping: Reply 100%, RREPSN=' num2str(rrepsn(vert)) ', t=' num2str(result.t(i))];
         end
     end
 
@@ -419,15 +317,15 @@ while flag ~= 1 && temp < numNodes
     end
 end
 
-% Display ping results
-disp('Ping Results:');
-for i = 1:numNodes
-    for j = 1:numNodes
-        if ~isempty(pingResults{i, j})
-            disp(['Node ' num2str(i) ' to Node ' num2str(j) ': ' pingResults{i, j}]);
-        end
-    end
-end
+% % Tampilkan hasil ping
+% disp('Hasil Ping:');
+% for i = 1:numNodes
+%     for j = 1:numNodes
+%         if ~isempty(pingResults{i, j})
+%             disp(['Node ' num2str(i) ' to Node ' num2str(j) ': ' pingResults{i, j}]);
+%         end
+%     end
+% end
 
 % Check for nodes that initiated RREQ but did not receive RREP (Timeout)
 disp('Timeout Results:');
@@ -477,22 +375,135 @@ for i = 1:numNodes
     end
 end
 
+
+
+
+% Display connections for each node
+disp('Node Connections:');
+for i = 1:numNodes
+    if i == goalNode
+        disp(['Node ' num2str(i) ' is the goal node.']);
+    else
+        disp(['Node ' num2str(i) ' connects to: ' num2str(route(end:-1:1))]);
+    end
+end
 result.Difference = result.RREPSN - result.SSN;
 % Set the threshold for disconnect status
-threshold_lower = -50;
-threshold_upper = 50;
+threshold_lower = -15;
+threshold_upper = 15;
 
 % Initialize the 'Status' column as 'Connected'
-result.Status = repmat({'Connected'}, height(result), 1);
+result.Status = repmat("Connected", height(result), 1);
 
 % Update 'Status' to 'Disconnected' if the difference is beyond the thresholds
-result.Status(result.Difference < threshold_lower | result.Difference > threshold_upper) = {'Disconnected'};
+result.Status(result.Difference < threshold_lower | result.Difference > threshold_upper) = "Disconnected";
+
+% Membuat loop untuk mengecek setiap nilai t
+for t = 1:max(result.t)
+    % Mendapatkan ID yang muncul pada iterasi saat ini
+    ids_current = unique(result.id(result.t == t));
+    
+    % Loop melalui setiap ID yang muncul pada iterasi saat ini
+    for id_idx = 1:numel(ids_current)
+        id = ids_current{id_idx};
+        % Jika ID tidak ada dalam struktur id_counts, tambahkan dan atur nilai awalnya menjadi 0
+        if ~isKey(id_counts, id)
+            id_counts(id) = 0;
+        end
+        % Mendapatkan jumlah kemunculan ID pada iterasi sebelumnya
+        count_prev = id_counts(id);
+        
+        % Mendapatkan indeks ID pada iterasi saat ini
+        idx_current = find(strcmp(result.id, id) & result.t == t);
+        
+        % Memperbarui sequence untuk ID pada iterasi saat ini dengan indeks unik yang tepat
+        for i = 1:numel(idx_current)
+            result.sequence{idx_current(i)} = [id, '_', num2str(count_prev + i)];
+        end
+        
+        % Mengupdate jumlah kemunculan ID
+        id_counts(id) = count_prev + numel(idx_current);
+    end
+end
+
+
+% Iterasi untuk t = 1 hingga 100
+for t = 1:50
+    % Mengambil data dengan nilai 't' sesuai iterasi
+    resultTime = result(result.t == t, :);
+
+    % Perhitungan nilai d
+    if t > 1
+        d = sqrt((data.x(t) - data.x(t-1)).^2 + (data.y(t) - data.y(t-1)).^2);
+    else
+        d = 0; 
+    end
+    
+    % Jika data tidak mencapai 80 baris, tambahkan baris dengan nilai 0
+    if size(resultTime, 1) < 80
+        rowsTotal = 80 - size(resultTime, 1);
+        rowsZero = array2table(zeros(rowsTotal, width(resultTime)), 'VariableNames', resultTime.Properties.VariableNames);
+        resultTime = [resultTime; rowsZero];
+    end
+
+    % Simpan resultTime ke dalam group
+    group.Result{t} = resultTime;
+
+    % Hapus variabel yang tidak ingin ditampilkan di workspace
+    clear nonZeroDIdx rowsTotal rowsZero;
+end
+
+% Iterasi untuk t = 1 hingga 100
+for t = 1:50
+    % Mengambil tabel dari dalam cell array
+    resultTableTime = group.Result{t};
+
+    % Menambahkan kolom warna ke dalam tabel hanya jika d > 0
+    resultTableTime.color = cell(height(resultTableTime), 1);
+
+    % Temukan indeks baris dengan nilai d terkecil dan terbesar
+    minD = find(resultTableTime.d == min(resultTableTime.d(resultTableTime.d > 0)), 1, 'first');
+    maxD = find(resultTableTime.d >= 300);
+
+    % Berikan warna hijau untuk nilai d terkecil jika d > 0
+    if ~isempty(minD)
+        resultTableTime.color{minD} = 'green';
+    end
+    
+%     % Berikan warna merah untuk nilai d terbesar jika d > 0
+%     if ~isempty(maxD)
+%         resultTableTime.color(maxD)= {'red'};
+%     end
+    
+    % Isi nilai biru hanya untuk baris dengan nilai d sama dengan 0
+    zeroDIdx = find(resultTableTime.d == 0);
+    
+    % Hapus node biru dengan nilai d = 0 dari hasil plot
+    resultTableTime(zeroDIdx, :) = [];
+    
+    % Isi nilai biru untuk baris dengan nilai d tidak sama dengan 0 dan tidak memiliki warna
+    nonZeroDIdx = find(resultTableTime.d > 0 & cellfun('isempty', resultTableTime.color));
+    resultTableTime.color(nonZeroDIdx) = {'blue'};
+
+    % Menyimpan indeks baris dengan nilai d terkecil sebagai Head Cluster (warna hijau)
+    headClusterIdx = find(strcmp(resultTableTime.color, 'green'));
+    if ~isempty(headClusterIdx)
+        resultTableTime.color{headClusterIdx} = 'Head Cluster';
+    end
+
+    % Menyimpan tabel yang telah dimodifikasi ke dalam cell array
+    group.Result{t} = resultTableTime;
+
+    % Hapus variabel yang tidak ingin ditampilkan di workspace
+    clear nonZeroDIdx zeroDIdx;
+    clear headClusterIdx maxD minD;
+end
 
 % Inisialisasi variabel baru untuk warna pada result
 result.color = cell(height(result), 1);
 
 % Iterasi untuk menyalin warna dari resultTableTime ke result
-for t = 1:100
+for t = 1:50
     resultTime = group.Result{t};
     idxResult = find(result.t == t);
 
@@ -505,15 +516,6 @@ for t = 1:100
     result.color(idxResult) = resultTime.color;
 end
 
-% Display connections for each node
-disp('Node Connections:');
-for i = 1:numNodes
-    if i == goalNode
-        disp(['Node ' num2str(i) ' is the goal node.']);
-    else
-        disp(['Node ' num2str(i) ' connects to: ' num2str(route(end:-1:1))]);
-    end
-end
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
 
 
