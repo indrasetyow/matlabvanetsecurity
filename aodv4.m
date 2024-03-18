@@ -118,12 +118,13 @@ for t = 1:max(result.t)
         id_count(id) = count_prev + numel(idx_current);
     end
 end
+
 % Inisialisasi variabel
 numNodes = height(unique(result));
 validDValues = zeros(numNodes, numNodes);
 
 % Tentukan jumlah baris yang ingin digunakan
-jumlah_baris = 1497; 
+jumlah_baris = 313; 
 
 % Ambil sejumlah baris tertentu dari tabel result
 data_terbatas = result(1:jumlah_baris, :);
@@ -223,15 +224,6 @@ while flag ~= 1 && temp < numNodes
     end
 end
 
-% % Tampilkan hasil ping
-% disp('Hasil Ping:');
-% for i = 1:numNodes
-%     for j = 1:numNodes
-%         if ~isempty(pingResults{i, j})
-%             disp(['Node ' num2str(i) ' to Node ' num2str(j) ': ' pingResults{i, j}]);
-%         end
-%     end
-% end
 
 % Check for nodes that initiated RREQ but did not receive RREP (Timeout)
 % disp('Timeout Results:');
@@ -271,32 +263,11 @@ while next(i) ~= 0 % Ganti dengan node awal
     i = next(i);
 end
 
-% % Tampilkan hasil ping
-% disp('Hasil Ping:');
-% for i = 1:numNodes
-%     for j = 1:numNodes
-%         if ~isempty(pingResults{i, j})
-%             disp(['Node ' num2str(i) ' to Node ' num2str(j) ': ' pingResults{i, j}]);
-%         end
-%     end
-% end
 
-
-
-
-% Display connections for each node
-% disp('Node Connections:');
-% for i = 1:numNodes
-%     if i == goalNode
-%         disp(['Node ' num2str(i) ' is the goal node.']);
-%     else
-%         disp(['Node ' num2str(i) ' connects to: ' num2str(route(end:-1:1))]);
-%     end
-% end
 result.Difference = result.RREPSN - result.SSN;
 % Set the threshold for disconnect status
-threshold_lower = -15;
-threshold_upper = 15;
+threshold_lower = -14;
+threshold_upper = 14;
 
 % Initialize the 'Status' column as 'Connected'
 result.Status = repmat("Connected", height(result), 1);
@@ -390,13 +361,28 @@ for t = 1:50
     % Isi nilai biru untuk baris dengan nilai d tidak sama dengan 0 dan tidak memiliki warna
     nonZeroDIdx = find(resultTableTime.d > 0 & cellfun('isempty', resultTableTime.color));
     resultTableTime.color(nonZeroDIdx) = {'blue'};
-
+    
     % Menyimpan indeks baris dengan nilai d terkecil sebagai Head Cluster (warna hijau)
     headClusterIdx = find(strcmp(resultTableTime.color, 'green'));
     if ~isempty(headClusterIdx)
         resultTableTime.color{headClusterIdx} = 'Head Cluster';
     end
+    
+    % Menyimpan indeks baris dengan status "Disconnected" dan mengubah warna menjadi merah
+    disconnectedIdx = find(strcmp(resultTableTime.Status, 'Disconnected'));
+    if ~isempty(disconnectedIdx)
+        resultTableTime.color(disconnectedIdx) = {'red'}; % Corrected assignment using comma-separated list
+    end
 
+    % Check if the status is "Disconnected" and update SSN accordingly
+    % Check if the status is "Disconnected" and update RREPSN accordingly
+    disconnectedIdx = find(result.Status == "Disconnected");
+    for idx = 1:numel(disconnectedIdx)
+        % Generate a random RREPSN for disconnected nodes
+        result.RREPSN(disconnectedIdx(idx)) = randi([0, 1000000000]); % Assuming the range for RREPSN
+    end
+
+    
     % Menyimpan tabel yang telah dimodifikasi ke dalam cell array
     group.Result{t} = resultTableTime;
 
@@ -448,7 +434,7 @@ for t_idx = 1:20
     delay_avg = zeros(size(resultTableTime, 1), 1);
 
     % Plot data pada subplot pertama
-    subplot(2, 1, 1);
+    subplot(3, 1, 1);
     xlabel('Data x');
     ylabel('Data y');
     grid on;
@@ -459,56 +445,46 @@ for t_idx = 1:20
             plot(resultTableTime.x(i), resultTableTime.y(i), 'X', 'Color', 'green', 'MarkerSize', 15, 'MarkerFaceColor', 'green', 'LineWidth', 1.5);
         elseif strcmp(resultTableTime.color{i}, 'blue')
             plot(resultTableTime.x(i), resultTableTime.y(i), 'o', 'Color', 'blue', 'MarkerSize', 8, 'MarkerFaceColor', 'blue', 'LineWidth', 1);
-        elseif strcmp(resultTableTime.color{i}, 'red')
-            plot(resultTableTime.x(i), resultTableTime.y(i), 'o', 'Color', 'red', 'MarkerSize', 8, 'MarkerFaceColor', 'red', 'LineWidth', 1);
-        else
-            plot(resultTableTime.x(i), resultTableTime.y(i), 'o', 'Color', warna{mod(i, length(warna)) + 1}, 'MarkerSize', 8, 'MarkerFaceColor', warna{mod(i, length(warna)) + 1}, 'LineWidth', 1);
         end
     end  
 
-    title(['Plot 1 Data PKU ']);
+    title(['Plot Data untuk t = ' num2str(t_idx)]);
 
     % Plot garis antar node berdasarkan nilai d pada t saat ini
     for i = 1:size(resultTableTime, 1)-1
         d = sqrt((resultTableTime.x(i) - resultTableTime.x(i+1))^2 + (resultTableTime.y(i) - resultTableTime.y(i+1))^2);
-        if d <= 300
-            plot([resultTableTime.x(i), resultTableTime.x(i+1)], [resultTableTime.y(i), resultTableTime.y(i+1)], 'b--', 'LineWidth', 1);
-        else
-            plot([resultTableTime.x(i), resultTableTime.x(i+1)], [resultTableTime.y(i), resultTableTime.y(i+1)], 'r--', 'LineWidth', 1);
-        end
+        plot([resultTableTime.x(i), resultTableTime.x(i+1)], [resultTableTime.y(i), resultTableTime.y(i+1)], 'b--', 'LineWidth', 1);
     end
 
     % Menambahkan legenda untuk subplot pertama
-    legend('Head Cluster (X Hijau)', 'Blue (Kendaraan)', 'Red', 'Location', 'northwest');
+    legend('Head Cluster (X Hijau)', 'Blue (Kendaraan)', 'Location', 'northwest');
 
     % Plot data pada subplot kedua
-    subplot(2, 1, 2);
+    subplot(3, 1, 2);
     xlabel('Data x');
     ylabel('Data y');
     grid on;
     hold on;
 
-    % Tentukan indeks head cluster di grafik pertama
-    originalHeadClusterIndex = find(strcmp(group.Result{1}.color, 'Head Cluster'));
-    
-    % Tentukan indeks head cluster di grafik kedua
-    newHeadClusterIndex = mod(originalHeadClusterIndex + t_idx - 1, size(resultTableTime, 1)) + 1;
-    
-    % Tentukan node yang ditinggalkan oleh head cluster
-    nodesDitinggalkan = originalHeadClusterIndex(originalHeadClusterIndex ~= newHeadClusterIndex);
+%     % Tentukan indeks head cluster di grafik pertama
+%     originalHeadClusterIndex = find(strcmp(group.Result{1}.color, 'Head Cluster'));
+%     
+%     % Tentukan indeks head cluster di grafik kedua
+%     newHeadClusterIndex = mod(originalHeadClusterIndex + t_idx - 1, size(resultTableTime, 1)) + 1;
+%     
+%     % Tentukan node yang ditinggalkan oleh head cluster
+%     nodesDitinggalkan = originalHeadClusterIndex(originalHeadClusterIndex ~= newHeadClusterIndex);
 
     for i = 1:size(resultTableTime, 1)
-        if i == newHeadClusterIndex
-            % Plot head cluster baru sebagai 'X' hijau
+        if strcmp(resultTableTime.color{i}, 'Head Cluster')
             plot(resultTableTime.x(i), resultTableTime.y(i), 'X', 'Color', 'green', 'MarkerSize', 15, 'MarkerFaceColor', 'green', 'LineWidth', 1.5);
-        elseif strcmp(resultTableTime.color{i}, 'red')
+        elseif strcmp(resultTableTime.color{i}, 'blue')
+            plot(resultTableTime.x(i), resultTableTime.y(i), 'o', 'Color', 'blue', 'MarkerSize', 8, 'MarkerFaceColor', 'blue', 'LineWidth', 1);
+        elseif strcmp(resultTableTime.color{i}, 'red') || strcmp(resultTableTime.Status{i}, 'Disconnected')
             plot(resultTableTime.x(i), resultTableTime.y(i), 'o', 'Color', 'red', 'MarkerSize', 8, 'MarkerFaceColor', 'red', 'LineWidth', 1);
-        elseif ~any(i == nodesDitinggalkan)
-            % Plot node yang tersisa sebagai 'o' biru
-            plot(resultTableTime.x(i), resultTableTime.y(i), 'o', 'Color', 'blue', 'MarkerSize', 8, 'MarkerFaceColor', 'blue', 'LineWidth', 1);
+            text(resultTableTime.x(i), resultTableTime.y(i), 'Discard Route', 'Color', 'red', 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'left');
         else
-            % Plot semua node lainnya sebagai biru
-            plot(resultTableTime.x(i), resultTableTime.y(i), 'o', 'Color', 'blue', 'MarkerSize', 8, 'MarkerFaceColor', 'blue', 'LineWidth', 1);
+            plot(resultTableTime.x(i), resultTableTime.y(i), 'o', 'Color', warna{mod(i, length(warna)) + 1}, 'MarkerSize', 8, 'MarkerFaceColor', warna{mod(i, length(warna)) + 1}, 'LineWidth', 1);
         end
     end
     
@@ -516,25 +492,73 @@ for t_idx = 1:20
     
     % Plot garis antar node berdasarkan nilai d pada t saat ini
     for i = 1:size(resultTableTime, 1)-1
-        d = sqrt((resultTableTime.x(i) - resultTableTime.x(i+1))^2 + (resultTableTime.y(i) - resultTableTime.y(i+1))^2);
-        if d <= 300
-            plot([resultTableTime.x(i), resultTableTime.x(i+1)], [resultTableTime.y(i), resultTableTime.y(i+1)], 'b--', 'LineWidth', 1);
+        % Periksa apakah node saat ini atau node berikutnya berstatus "Disconnected"
+        if strcmp(resultTableTime.color{i}, 'red') || strcmp(resultTableTime.color{i+1}, 'red')
+            % Hitung titik terputus yang ditarik ke sumbu y dengan perbedaan -100
+            disconnected_y = resultTableTime.y(i) - 100;
+            
+            % Plot garis terputus dari titik sebelumnya ke titik terputus dengan warna hitam
+            plot([resultTableTime.x(i), resultTableTime.x(i)], [resultTableTime.y(i), disconnected_y], 'k--', 'LineWidth', 1);
+            
+            % Plot garis dari titik terputus ke titik berikutnya dengan warna hitam
+            plot([resultTableTime.x(i), resultTableTime.x(i+1)], [disconnected_y, resultTableTime.y(i+1)], 'k--', 'LineWidth', 1);
+            
+            % Tambahkan teks "Disconnected" pada titik yang disconnected
+            text(resultTableTime.x(i), disconnected_y, 'Disconnected', 'Color', 'k', 'HorizontalAlignment', 'center');
         else
-            % Tidak memplot garis jika nilai d > 300 (node terputus)
-            if i > 1 && resultTableTime.d(i-1) 
-                % Cari node untuk koneksi yang tersisa
-                nodeUntukKoneksi = setdiff(1:size(resultTableTime, 1), [i, nodesDitinggalkan]);
-                % Jika ada node yang tersisa untuk koneksi, hubungkan dengan salah satu dari mereka
-                if ~isempty(nodeUntukKoneksi)
-                    plot([resultTableTime.x(i), resultTableTime.x(nodeUntukKoneksi(1))], [resultTableTime.y(i), resultTableTime.y(nodeUntukKoneksi(1))], 'r--', 'LineWidth', 1);
-                end
-            end
+            % Plot garis antar node jika keduanya terhubung
+            plot([resultTableTime.x(i), resultTableTime.x(i+1)], [resultTableTime.y(i), resultTableTime.y(i+1)], 'b--', 'LineWidth', 1);
         end
     end
 
     % Menambahkan legenda untuk subplot kedua 
     legend('Head Cluster (X Hijau)', 'Blue (Kendaraan)', 'Red', 'Location', 'northwest');
-  
+    
+    % Inisialisasi array untuk menyimpan throughput
+    throughputdata = zeros(1, 20); % Anda perlu menyesuaikan ukurannya dengan jumlah iterasi yang diinginkan
+    throughputserangan = zeros(1, 20); % Anda perlu menyesuaikan ukurannya dengan jumlah iterasi yang diinginkan
+    
+    % Loop untuk menghitung throughput pada setiap iterasi
+    for t_idx = 1:20
+        % Mengambil tabel dari dalam cell array
+        resultTableTime = group.Result{t_idx};
+    
+        % Hitung jumlah node yang masih aktif (x dan y positif) berdasarkan posisi x dan y
+        active_nodes = sum(resultTableTime.x > 0 & resultTableTime.y > 0);
+    
+        % Hitung throughput sebagai jumlah node yang masih aktif dibagi jumlah total node
+        throughputdata(t_idx) = active_nodes / size(resultTableTime, 1);
+    end
+    
+    % Menghitung throughput dari data yang tersedia
+    % Menghitung throughput dari data yang tersedia
+    for t_idx = 1:20
+        resultTableTime = group.Result{t_idx};
+        
+        % Hitung jumlah node yang masih terhubung (tidak disconnected)
+        connected_nodes = sum(strcmp(resultTableTime.Status, 'Connected'));
+        
+        % Hitung throughput sebagai jumlah node yang masih terhubung dibagi jumlah total node
+        throughputserangan(t_idx) = connected_nodes / size(resultTableTime, 1);
+    end
+    
+    % Plot throughput dalam subplot baru (subplot 3, 1, 3)
+    subplot(3, 1, 3);
+    % Memplot throughput data dengan warna biru dan memberikan label 'Data Throughput'
+    plot(1:20, throughputdata, 'b-', 'LineWidth', 1.5, 'DisplayName', 'Data Throughput');
+    hold on;
+    
+    % Memplot throughput serangan dengan warna merah dan memberikan label 'Attack Throughput'
+    plot(1:20, throughputserangan, 'r-', 'LineWidth', 1.5, 'DisplayName', 'Attack Throughput');
+    
+    xlabel('Jumlah Titik');
+    ylabel('Throughput');
+    title('Throughput over time');
+    grid on;
+    
+    % Menambahkan legenda
+    legend('throughput non serangan', 'throughput serangan', 'Location', 'northwest');
+
     
 
     % Menambahkan legenda untuk subplot keempat
@@ -542,7 +566,7 @@ for t_idx = 1:20
 
     % Tunggu sejenak agar plot dapat diperbarui
     drawnow;
-    pause(0.1);
+    pause(0.5);
 
 end
 
