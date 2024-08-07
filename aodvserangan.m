@@ -582,6 +582,7 @@ throughput2 = zeros(1, 100);
 
 % Membuat plot untuk setiap nilai t dari 1 hingga 100
 for t_idx = 1:20
+    
     % Mengambil tabel dari dalam cell array untuk plot kedua
     resultTableTimeSerangan = group.Result{t};
 
@@ -636,14 +637,19 @@ for t_idx = 1:20
     resultTableTime = resultTableTime(idxSorted, :);
 
 
-    for i = 1:size(resultTableTime, 1)        
+    for i = 1:size(resultTableTime, 1)
         if strcmp(resultTableTime.color{i}, 'Head Cluster')
             figure(1);
-            scatter(resultTableTime.x(i), resultTableTime.y(i), 100, 'green', 'X', 'LineWidth', 1.5); % Simbol X untuk Head Cluster
+            scatter(resultTableTime.x(i), resultTableTime.y(i), 100, 'green', 'X', 'LineWidth', 1.5); % Symbol X for Head Cluster
         elseif strcmp(resultTableTime.color{i}, 'blue')
             figure(1);
-            scatter(resultTableTime.x(i), resultTableTime.y(i), 64, 'blue', 'o', 'filled'); % Titik-titik biru
+            scatter(resultTableTime.x(i), resultTableTime.y(i), 64, 'blue', 'o', 'filled'); % Blue dots
+        elseif strcmp(resultTableTime.color{i}, 'magenta')
+            figure(1);
+            scatter(resultTableTime.x(i), resultTableTime.y(i), 64, 'magenta', 'o', 'filled'); % Magenta dots
         end
+
+
         
         % Plot garis antar node
         if i < size(resultTableTime, 1)
@@ -660,6 +666,8 @@ for t_idx = 1:20
     hold on; 
     h1 = scatter(NaN, NaN, 100, 'green', 'X', 'LineWidth', 1.5); 
     h2 = scatter(NaN, NaN, 64, 'blue', 'o', 'filled'); 
+    h3 = scatter(NaN, NaN, 64, 'magenta', 'o', 'filled');
+    h4 = scatter(NaN, NaN, 64, 'red', 'o', 'filled');
     leg1 = legend([h1, h2], 'Head Cluster', 'Node Kendaraan', 'Location', 'northeast');
     set(leg1, 'Box', 'on');
     hold off;
@@ -716,11 +724,16 @@ for t_idx = 1:20
         elseif strcmp(resultTableTimeSerangan.color{i}, 'red') || strcmp(resultTableTimeSerangan.color{i}, 'Malicious')
             figure(2);
             scatter(resultTableTimeSerangan.x(i), resultTableTimeSerangan.y(i), 64, 'r', 'filled'); 
+        elseif strcmp(resultTableTimeSerangan.color{i}, 'magenta')
+            figure(2);
+            scatter(resultTableTimeSerangan.x(i), resultTableTimeSerangan.y(i), 64, 'm', 'filled');
         else
             figure(2);
             scatter(resultTableTimeSerangan.x(i), resultTableTimeSerangan.y(i), 64, 'b', 'filled');
         end
+    
         
+
         % Plot connections between nodes
         for j = i + 1:size(resultTableTimeSerangan.koneksi, 2)
             if resultTableTimeSerangan.koneksi(i, j) == 1

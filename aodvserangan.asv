@@ -362,13 +362,13 @@ for t = 1:50
         resultTableTime.color{minD} = 'green';
     end
     
-    % Berikan warna merah untuk nilai d terbesar jika d > 0
-    if ~isempty(maxD)
-        resultTableTime.color(maxD)= {'magenta'};
-        % Ubah status menjadi 'Timeout'
-        resultTableTime.Status(maxD) = {'Timeout'};
-    end
-    
+%     % Berikan warna merah untuk nilai d terbesar jika d > 0
+%     if ~isempty(maxD)
+%         resultTableTime.color(maxD)= {'magenta'};
+%         % Ubah status menjadi 'Timeout'
+%         resultTableTime.Status(maxD) = {'Timeout'};
+%     end
+%     
     % Isi nilai biru hanya untuk baris dengan nilai d sama dengan 0
     zeroDIdx = find(resultTableTime.d == 0);
     
@@ -433,7 +433,7 @@ for t = 1:50
     
     % Berikan warna merah untuk nilai d terbesar jika d > 0
     if ~isempty(maxD)
-        resultTableTimeSerangan.color(maxD)= {'magenta'};
+        resultTableTimeSerangan.color(maxD)= {'red'};
         % Ubah status menjadi 'Timeout'
         resultTableTimeSerangan.Status(maxD) = {'Timeout'};
     end
@@ -467,6 +467,7 @@ for t = 1:50
         % Generate a random RREPSN for disconnected nodes
         result.RREPSN(disconnectedIdx(idx)) = randi([0, 1000000000]); % Assuming the range for RREPSN
     end
+
 
     % Inisialisasi matriks koneksi
     resultTableTimeSerangan.koneksi = zeros(size(resultTableTimeSerangan, 1), size(resultTableTimeSerangan, 1));
@@ -513,6 +514,69 @@ for t = 1:50
             end
         end
     end
+    
+    % Membuat koneksi ulang untuk node merah
+    for i = 1:length(redNodesIdx)
+        redNode = redNodesIdx(i);
+        % Cari node terdekat yang tidak merah
+        for j = 1:size(resultTableTimeSerangan.koneksi, 1)
+            if redNode ~= j && ~strcmp(resultTableTimeSerangan.color(j), 'red') && resultTableTimeSerangan.d(j) < 300
+                resultTableTimeSerangan.koneksi(redNode, j) = 1;
+                resultTableTimeSerangan.koneksi(j, redNode) = 1;
+                break; % Hanya satu koneksi yang perlu ditambahkan
+            end
+        end
+    end
+
+
+
+
+%     % Inisialisasi matriks koneksi
+%     resultTableTimeSerangan.koneksi = zeros(size(resultTableTimeSerangan, 1), size(resultTableTimeSerangan, 1));
+%     
+%     % Mendapatkan indeks node yang belum terkoneksi
+%     unconnectedNodesIdx = find(sum(resultTableTimeSerangan.koneksi, 2) == 0);
+%     
+%     % Urutkan node yang belum terkoneksi berdasarkan nilai d dari terkecil hingga terbesar
+%     [~, sortedIdx] = sort(resultTableTimeSerangan.d(unconnectedNodesIdx));
+%     sortedUnconnectedNodesIdx = unconnectedNodesIdx(sortedIdx);
+%     
+%     % Membuat koneksi ulang berdasarkan node yang tidak terkoneksi yang sudah diurutkan
+%     for i = 1:length(sortedUnconnectedNodesIdx)
+%         currentNode = sortedUnconnectedNodesIdx(i);
+%         for j = (i+1):length(sortedUnconnectedNodesIdx)
+%             nextNode = sortedUnconnectedNodesIdx(j);
+%             if resultTableTimeSerangan.d(nextNode) < 300 % Jika jarak antara node saat ini dengan node berikutnya kurang dari 300
+%                 resultTableTimeSerangan.koneksi(currentNode, nextNode) = 1;
+%                 resultTableTimeSerangan.koneksi(nextNode, currentNode) = 1;
+%                 break; % Hanya satu koneksi yang perlu ditambahkan
+%             end
+%         end
+%     end
+%     
+%     % Nonaktifkan koneksi ke dan dari node-node merah
+%     redNodesIdx = find(strcmp(resultTableTimeSerangan.color, 'red'));
+%     if ~isempty(redNodesIdx)
+%         for i = 1:length(redNodesIdx)
+%             redNode = redNodesIdx(i);
+%             resultTableTimeSerangan.koneksi(redNode, :) = 0; % Nonaktifkan koneksi ke node lain
+%             resultTableTimeSerangan.koneksi(:, redNode) = 0; % Nonaktifkan koneksi dari node lain
+%         end
+%     end
+%     
+%     % Membuat koneksi ulang berdasarkan node yang tidak terkoneksi dan bukan berwarna merah
+%     for i = 1:size(resultTableTimeSerangan.koneksi, 1)
+%         if sum(resultTableTimeSerangan.koneksi(i, :)) == 0 && ~strcmp(resultTableTimeSerangan.color(i), 'red') % Jika node belum terkoneksi dengan siapa pun dan bukan berwarna merah
+%             for j = 1:size(resultTableTimeSerangan.koneksi, 2)
+%                 if i ~= j && sum(resultTableTimeSerangan.koneksi(j, :)) < 2 && resultTableTimeSerangan.d(i) < 300 && resultTableTimeSerangan.d(j) < 300
+%                     resultTableTimeSerangan.koneksi(i, j) = 1;
+%                     resultTableTimeSerangan.koneksi(j, i) = 1;
+%                     break; % Hanya satu koneksi yang perlu ditambahkan
+%                 end
+%             end
+%         end
+%     end
+     
 
      % Menghasilkan nilai pt dalam rentang [200, 300] berdasarkan t
     pt = 50 + (t - 1) * 10; % Pertambahan 10 setiap iterasi t
@@ -581,7 +645,7 @@ delay2 = zeros(1, 100);
 throughput2 = zeros(1, 100);
 
 % Membuat plot untuk setiap nilai t dari 1 hingga 100
-for t_idx = 1:20
+for t_idx = 1:17
     % Mengambil tabel dari dalam cell array untuk plot kedua
     resultTableTimeSerangan = group.Result{t};
 
@@ -721,18 +785,23 @@ for t_idx = 1:20
             scatter(resultTableTimeSerangan.x(i), resultTableTimeSerangan.y(i), 64, 'b', 'filled');
         end
         
-        % Plot connections between nodes
-        for j = i + 1:size(resultTableTimeSerangan.koneksi, 2)
-            if resultTableTimeSerangan.koneksi(i, j) == 1
-                if strcmp(resultTableTimeSerangan.color{i}, 'red') || strcmp(resultTableTimeSerangan.color{j}, 'red')
-                    % Draw connections involving red nodes with a different style
-                    plot([resultTableTimeSerangan.x(i), resultTableTimeSerangan.x(j)], [resultTableTimeSerangan.y(i), resultTableTimeSerangan.y(j)], 'r--', 'LineWidth', 1.5);
-                else
-                    % Draw connections between non-red nodes
-                    plot([resultTableTimeSerangan.x(i), resultTableTimeSerangan.x(j)], [resultTableTimeSerangan.y(i), resultTableTimeSerangan.y(j)], 'b--', 'LineWidth', 1);
-                end
-            end
-        end
+%         for j = i + 1:size(resultTableTimeSerangan.koneksi, 2)
+%             if resultTableTimeSerangan.koneksi(i, j) == 1 && ~strcmp(resultTableTimeSerangan.color{i}, 'red') && ~strcmp(resultTableTimeSerangan.color{j}, 'red')
+%                 plot([resultTableTimeSerangan.x(i), resultTableTimeSerangan.x(j)], [resultTableTimeSerangan.y(i), resultTableTimeSerangan.y(j)], 'b--', 'LineWidth', 1);
+%             end
+%         end
+%         % Plot connections between nodes
+%         for j = i + 1:size(resultTableTimeSerangan.koneksi, 2)
+%             if resultTableTimeSerangan.koneksi(i, j) == 1
+%                 if strcmp(resultTableTimeSerangan.color{i}, 'red') || strcmp(resultTableTimeSerangan.color{j}, 'red')
+%                     % Draw connections involving red nodes with a different style
+%                     plot([resultTableTimeSerangan.x(i), resultTableTimeSerangan.x(j)], [resultTableTimeSerangan.y(i), resultTableTimeSerangan.y(j)], 'r--', 'LineWidth', 1.5);
+%                 else
+%                     % Draw connections between non-red nodes
+%                     plot([resultTableTimeSerangan.x(i), resultTableTimeSerangan.x(j)], [resultTableTimeSerangan.y(i), resultTableTimeSerangan.y(j)], 'b--', 'LineWidth', 1);
+%                 end
+%             end
+%         end
     end
 
 
@@ -814,7 +883,7 @@ for t_idx = 1:20
   
     
    
-    pause(0.45);
+    pause(0.10);
 
 end
 
