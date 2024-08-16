@@ -24,8 +24,8 @@ Data_l = unique(l);
 % Inisialisasi variabel baru dengan zeros
 selectedData = zeros(80, 3);
 
-A6 = 500; % Satuan Kbps 
-B6 = 30;
+% A6 = 500; % Satuan Kbps 
+% B6 = 30;
 
 % Mengambil 80 baris pertama dari kolom x, y, dan id
 selectedData(:, 1) = data.x(1:80);
@@ -457,11 +457,10 @@ for t = 1:50
     % Menyimpan indeks baris dengan status "Disconnected" dan mengubah warna menjadi merah
     disconnectedIdx = find(strcmp(resultTableTimeSerangan.Status, 'Disconnected'));
     if ~isempty(disconnectedIdx)
-        resultTableTimeSerangan.color(disconnectedIdx) = {'red'}; % Corrected assignment using comma-separated list
+        resultTableTimeSerangan.color(disconnectedIdx) = {'red'};
     end
 
     % Check if the status is "Disconnected" and update SSN accordingly
-    % Check if the status is "Disconnected" and update RREPSN accordingly
     disconnectedIdx = find(result.Status == "Disconnected");
     for idx = 1:numel(disconnectedIdx)
         % Generate a random RREPSN for disconnected nodes
@@ -484,9 +483,11 @@ for t = 1:50
         for j = (i+1):length(sortedUnconnectedNodesIdx)
             nextNode = sortedUnconnectedNodesIdx(j);
             if resultTableTimeSerangan.d(nextNode) < 300 % Jika jarak antara node saat ini dengan node berikutnya kurang dari 300
-                resultTableTimeSerangan.koneksi(currentNode, nextNode) = 1;
-                resultTableTimeSerangan.koneksi(nextNode, currentNode) = 1;
-                break; % Hanya satu koneksi yang perlu ditambahkan
+                if sum(resultTableTimeSerangan.koneksi(currentNode, :)) < 2 && sum(resultTableTimeSerangan.koneksi(nextNode, :)) < 2 % Pastikan setiap node memiliki maksimal 2 koneksi
+                    resultTableTimeSerangan.koneksi(currentNode, nextNode) = 1;
+                    resultTableTimeSerangan.koneksi(nextNode, currentNode) = 1;
+                    break; % Hanya satu koneksi yang perlu ditambahkan
+                end
             end
         end
     end
@@ -506,15 +507,35 @@ for t = 1:50
         if sum(resultTableTimeSerangan.koneksi(i, :)) == 0 && ~strcmp(resultTableTimeSerangan.color(i), 'red') % Jika node belum terkoneksi dengan siapa pun dan bukan berwarna merah
             for j = 1:size(resultTableTimeSerangan.koneksi, 2)
                 if i ~= j && sum(resultTableTimeSerangan.koneksi(j, :)) < 2 && resultTableTimeSerangan.d(i) < 300 && resultTableTimeSerangan.d(j) < 300
-                    resultTableTimeSerangan.koneksi(i, j) = 1;
-                    resultTableTimeSerangan.koneksi(j, i) = 1;
+                    if sum(resultTableTimeSerangan.koneksi(i, :)) < 2 && sum(resultTableTimeSerangan.koneksi(j, :)) < 2 % Pastikan setiap node memiliki maksimal 2 koneksi
+                        resultTableTimeSerangan.koneksi(i, j) = 1;
+                        resultTableTimeSerangan.koneksi(j, i) = 1;
+                        break; % Hanya satu koneksi yang perlu ditambahkan
+                    end
+                end
+            end
+        end
+    end
+    
+    % Menghubungkan node "Disconnected" ke node "Connected"
+    disconnectedNodesIdx = find(strcmp(resultTableTimeSerangan.Status, 'Disconnected'));
+    connectedNodesIdx = find(~strcmp(resultTableTimeSerangan.Status, 'Disconnected') & ~strcmp(resultTableTimeSerangan.color, 'red'));
+    
+    for i = 1:length(disconnectedNodesIdx)
+        disconnectedNode = disconnectedNodesIdx(i);
+        for j = 1:length(connectedNodesIdx)
+            connectedNode = connectedNodesIdx(j);
+            if resultTableTimeSerangan.d(disconnectedNode) < 300 && resultTableTimeSerangan.d(connectedNode) < 300
+                if sum(resultTableTimeSerangan.koneksi(disconnectedNode, :)) < 2 && sum(resultTableTimeSerangan.koneksi(connectedNode, :)) < 2 % Pastikan setiap node memiliki maksimal 2 koneksi
+                    resultTableTimeSerangan.koneksi(disconnectedNode, connectedNode) = 1;
+                    resultTableTimeSerangan.koneksi(connectedNode, disconnectedNode) = 1;
                     break; % Hanya satu koneksi yang perlu ditambahkan
                 end
             end
         end
     end
 
-     % Menghasilkan nilai pt dalam rentang [200, 300] berdasarkan t
+    % Menghasilkan nilai pt dalam rentang [200, 300] berdasarkan t
     pt = 50 + (t - 1) * 10; % Pertambahan 10 setiap iterasi t
     
     % Pastikan pt tidak melebihi 300
@@ -538,30 +559,13 @@ for t = 1:50
             resultTableTimeSerangan.rt(redNode, :) = -0.5;
         end
     end
+    
     % Menyimpan tabel yang telah dimodifikasi ke dalam cell array
     group.ResultTime{t} = resultTableTimeSerangan;
 
     % Hapus variabel yang tidak ingin ditampilkan di workspace
     clear nonZeroDIdx zeroDIdx;
     clear headClusterIdx maxD minD;
-end
-
-% Inisialisasi variabel baru untuk warna pada result
-result.color = cell(height(result), 1);
-
-% Iterasi untuk menyalin warna dari resultTableTime ke result
-for t = 1:50
-    resultTime = group.Result{t};
-    idxResult = find(result.t == t);
-
-    % Pastikan indeks tidak melebihi ukuran result
-    if isempty(idxResult)
-        break;
-    end
-
-    
-    % Salin warna dari resultTableTime ke result
-    result.color(idxResult) = resultTime.color;
 end
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
@@ -827,7 +831,7 @@ for t_idx = 1:20
   
     
    
-    pause(0.45);
+    pause(0.0);
 
 end
 
