@@ -465,6 +465,7 @@ for t = 1:50
     for idx = 1:numel(disconnectedIdx)
         % Generate a random RREPSN for disconnected nodes
         result.RREPSN(disconnectedIdx(idx)) = randi([0, 1000000000]); % Assuming the range for RREPSN
+
     end
 
     % Inisialisasi matriks koneksi
